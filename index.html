@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Française - Lecteur de Chaînes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #151b2b;
+            --bg-tertiary: #1e2738;
+            --accent: #00d9ff;
+            --accent-glow: rgba(0, 217, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #8b93a7;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Sidebar Toggle Button */
+        .sidebar-toggle {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent) 0%, #0099cc 100%);
+            border: none;
+            border-radius: 0 16px 16px 0;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 0 20px rgba(0, 217, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            width: 60px;
+            box-shadow: 6px 0 30px rgba(0, 217, 255, 0.5);
+        }
+
+        .sidebar-toggle.open {
+            left: 450px;
+        }
+
+        .sidebar-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-toggle.open svg {
+            transform: rotate(180deg);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .sidebar-filters {
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 100px;
+            z-index: 9;
+        }
+
+        .sidebar-content {
+            padding: 1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.shifted {
+            margin-left: 450px;
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Background effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.03) 0%, transparent 50%);
+            animation: bgFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-5%, 5%) rotate(5deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        /* Video Player Section */
+        .player-section {
+            margin-bottom: 0;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .player-container {
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 60px var(--shadow),
+                0 0 0 1px var(--border),
+                0 0 40px var(--accent-glow);
+        }
+
+        .player-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .now-playing {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .channel-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+
+        .channel-info h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .channel-category {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 20px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .live-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+        }
+
+        #videoPlayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #iframePlayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        #iframePlayer.active {
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        .video-overlay.hidden {
+            display: none;
+        }
+
+        .select-prompt {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .select-prompt h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .select-prompt p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Channel Card in Sidebar */
+        .sidebar-channels {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .search-box {
+            width: 100%;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 0.6rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .category-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .category-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        /* Channel Grid */
+        .channels-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .channel-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .channel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .channel-card:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .channel-card:hover::before {
+            opacity: 1;
+        }
+
+        .channel-card.active {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, var(--bg-tertiary) 100%);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .channel-card-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .channel-card-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .channel-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .channel-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .channel-card-category {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-toggle.open {
+                left: calc(100% - 50px);
+            }
+
+            .main-content.shifted {
+                margin-left: 0;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .player-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 350px;
+                left: -350px;
+            }
+
+            .sidebar-toggle.open {
+                left: 350px;
+            }
+
+            .main-content.shifted {
+                margin-left: 350px;
+            }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .no-results h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .no-results p {
+            font-size: 0.9rem;
+        }
+
+        /* Scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5l7 7-7 7"/>
+        </svg>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Chaînes TV</div>
+            <div class="sidebar-subtitle">50+ chaînes disponibles</div>
+        </div>
+
+        <div class="sidebar-filters">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Rechercher...">
+            </div>
+            <div class="category-filters" id="categoryFilters"></div>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="channels-grid" id="channelsGrid"></div>
+            <div class="no-results" id="noResults" style="display: none;">
+                <h3>Aucune chaîne</h3>
+                <p>Modifier votre recherche</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <header>
+                <h1>TV Française</h1>
+                <p class="subtitle">STREAMING EN DIRECT</p>
+            </header>
+
+            <div class="player-section">
+                <div class="player-container">
+                    <div class="player-header">
+                        <div class="now-playing" id="nowPlaying">
+                            <img src="https://i.imgur.com/QxHt9NC.png" alt="Logo" class="channel-logo" id="currentLogo">
+                            <div class="channel-info">
+                                <h2 id="currentChannel">Sélectionnez une chaîne</h2>
+                                <div class="channel-category" id="currentCategory">-</div>
+                            </div>
+                        </div>
+                        <div class="live-indicator" style="display: none;" id="liveIndicator">
+                            <div class="live-dot"></div>
+                            <div class="live-text">En Direct</div>
+                        </div>
+                    </div>
+                    <div class="video-wrapper">
+                        <video id="videoPlayer" controls></video>
+                        <iframe id="iframePlayer" allowfullscreen allow="autoplay"></iframe>
+                        <div class="video-overlay" id="videoOverlay">
+                            <div class="select-prompt">
+                                <h3>Bienvenue</h3>
+                                <p>Ouvrez le menu pour sélectionner une chaîne</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const channels = [
+  {
+    "id": 1,
+    "name": "TF1",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/tf1hd/browser-dash/tf1hd.mpd",
+    "logo": "https://i.imgur.com/QxHt9NC.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 2,
+    "name": "TF1 Serie Films",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/hd1/browser-dash/hd1.mpd",
+    "logo": "https://i.imgur.com/4CJIDKQ.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 3,
+    "name": "France 2",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/france2hd/browser-HLS8/france2hd.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/France_2_2018.svg/512px-France_2_2018.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 4,
+    "name": "France 3",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/france3hd/browser-HLS8/france3hd.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/France_3_2018.svg/512px-France_3_2018.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 5,
+    "name": "France 4",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/france4hd/browser-HLS8/france4hd.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/France_4_2018.svg/512px-France_4_2018.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 6,
+    "name": "France 5",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/france5hd/browser-HLS8/france5hd.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/France_5_2018.svg/512px-France_5_2018.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 7,
+    "name": "M6",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/m6hd/browser-dash/m6hd.mpd",
+    "logo": "https://i.imgur.com/7GVp3fW.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 8,
+    "name": "Arte",
+    "url": "https://artesimulcast.akamaized.net/hls/live/2031003/artelive_fr/index.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Arte-Logo.svg/341px-Arte-Logo.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 9,
+    "name": "W9",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/w9/browser-dash/w9.mpd",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/W9_2018.svg/1200px-W9_2018.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 10,
+    "name": "LCI",
+    "url": "https://raw.githubusercontent.com/ipstreet312/freeiptv/master/ressources/btv/py/lci1.m3u8",
+    "logo": "https://i.imgur.com/DED8EXs.png",
+    "category": "Information"
+  },
+  {
+    "id": 11,
+    "name": "TFX",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/nt1/browser-HLS8/nt1.m3u8",
+    "logo": "https://i.imgur.com/d91GcVf.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 12,
+    "name": "TMC",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/tmc/browser-HLS8/tmc.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/5/54/TMC_logo.svg/512px-TMC_logo.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 13,
+    "name": "Cherie25",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/cherie25/browser-HLS8/cherie25.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Logo_Ch%C3%A9rie_25.svg/512px-Logo_Ch%C3%A9rie_25.svg.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 14,
+    "name": "T18",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/t18/browser-HLS8/t18.m3u8",
+    "logo": "https://static-cdn.tv.sfr.net/data/img/apps/chaines/logos/T18100x100.png?h=100",
+    "category": "Généraliste"
+  },
+  {
+    "id": 15,
+    "name": "NOVO 19",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/novo19/browser-HLS8/novo19.m3u8",
+    "logo": "https://i.ibb.co/1t2g7bBq/novo19.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 16,
+    "name": "RAKUTEN TOP FILMS TV",
+    "url": "https://01ac9352fbfa4204998783d41f9b1a2e.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6068/master.m3u8",
+    "logo": "https://i.imgur.com/1IXQoWq.png",
+    "category": "Cinéma et Divertissement"
+  },
+  {
+    "id": 17,
+    "name": "RMC DÉCOUVERTE",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/rmcdecouverte/browser-HLS8/rmcdecouverte.m3u8",
+    "logo": "https://cdn.tv-programme.com/photos/rmc-decouverte-chaine-72.svg",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 18,
+    "name": "RMC Story",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/numero23/browser-HLS8/numero23.m3u8",
+    "logo": "https://i.imgur.com/h53nsyJ.png",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 19,
+    "name": "L'équipe",
+    "url": "https://dshn8inoshngm.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gac2i63dmu8b7/LEquipe_FR.m3u8",
+    "logo": "https://cdn.tv-programme.com/photos/l-equipe-chaine-50.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 20,
+    "name": "L'ÉQUIPE LIVE 1",
+    "url": "https://d3fikx9gxqicmt.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-3rguah8p42dlq/d903c3c9-a66d-4ed1-a922-d87a40815790/2.m3u8",
+    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
+    "category": "Sport"
+  },
+  {
+    "id": 21,
+    "name": "L'ÉQUIPE LIVE 2",
+    "url": "https://d2sfyr4abdyf7s.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-d5yhiqv8rl7x3/Lequipe2_FR.m3u8",
+    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
+    "category": "Sport"
+  },
+  {
+    "id": 22,
+    "name": "BFM",
+    "url": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_TV/index.m3u8?start=LIVE&end=END",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/4/40/BFM_TV_logo.png",
+    "category": "Information"
+  },
+  {
+    "id": 23,
+    "name": "MOTORVISION FR",
+    "url": "https://d1qswsont218xa.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-im2kwho8ev6jk/mv_fr.m3u8",
+    "logo": "https://i.ibb.co/0YKFn02/motorvisionfrs.png",
+    "category": "Sport"
+  },
+  {
+    "id": 24,
+    "name": "Gulli",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/gulli/browser-HLS8/gulli.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/fr/4/43/18._Gulli.png",
+    "category": "Jeunesse"
+  },
+  {
+    "id": 25,
+    "name": "Canalj",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/canalj/browser-HLS8/canalj.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/fr/6/69/Logo_canal_J.png",
+    "category": "Jeunesse"
+  },
+  {
+    "id": 26,
+    "name": "GONG",
+    "url": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01596-gongnetworks-gong-samsungfr/playlist.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/fr/e/e7/Gong_%28cha%C3%AEne_de_t%C3%A9l%C3%A9vision%29_Logo.png",
+    "category": "Jeunesse"
+  },
+  {
+    "id": 27,
+    "name": "CNews",
+    "url": "https://hls-m015-live-aka-canalplus.akamaized.net/live/disk/cnews-clair-hd/hls-v3-hd-clair/cnews-clair-hd.m3u8#origine=https://tvradiozap.eu/642",
+    "logo": "https://logos-marques.com/wp-content/uploads/2022/03/CNews-Logo.jpg",
+    "category": "Information"
+  },
+  {
+    "id": 28,
+    "name": "Rakuten TV Films Action",
+    "url": "https://01ac9352fbfa4204998783d41f9b1a2e.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6068/master.m3u8",
+    "logo": "https://www.planetecsat.com/wp-content/uploads/2024/05/logo-rakuten-tv-action.png",
+    "category": "Cinéma et Divertissement"
+  },
+  {
+    "id": 29,
+    "name": "DRIVE AUTO",
+    "url": "https://amg01796-amg01796c2-rakuten-uk-3887.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-drivetv-rakutenuk/playlist.m3u8",
+    "logo": "https://i.ibb.co/Xs1PxZs/driveauto.png",
+    "category": "Sport"
+  },
+  {
+    "id": 30,
+    "name": "ALLO CINÉ",
+    "url": "https://d1yl6bf4hrzbr0.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-5km3zs4zs9sp0/allo.m3u8",
+    "logo": "https://i.ibb.co/2SHJGsj/allocine.png",
+    "category": "Cinéma et Divertissement"
+  },
+  {
+    "id": 31,
+    "name": "Cstar",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/d17/browser-HLS8/d17.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Logo_CStar_2016.svg/1200px-Logo_CStar_2016.svg.png",
+    "category": "Cinéma et Divertissement"
+  },
+  {
+    "id": 32,
+    "name": "Top Sci-Fi",
+    "url": "https://amg01796-amg01796c14-samsung-fr-5846.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-topscifi-samsungfr/playlist.m3u8",
+    "logo": "https://tvpdotcomdynamiclogopeu.samsungcloud.tv/resize?url=https://tvpnlogopeu.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/FR4600001FK_20250121T012945SQUARE.png",
+    "category": "Cinéma et Divertissement"
+  },
+  {
+    "id": 33,
+    "name": "Animaux",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/animaux/browser-dash/animaux.mpd",
+    "logo": "https://i.imgur.com/FM9FVAG.png",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 34,
+    "name": "MTV",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/mtvfrance/browser-HLS8/mtvfrance.m3u8",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/MTV_2021_%28brand_version%29.svg/960px-MTV_2021_%28brand_version%29.svg.png",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 36,
+    "name": "AB1",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/ab1/browser-dash/ab1.mpd",
+    "logo": "https://i.imgur.com/9C7UsOe.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 37,
+    "name": "6ter",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/6ter/browser-HLS8/6ter.m3u8",
+    "logo": "https://i.imgur.com/2nd5Cox.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 38,
+    "name": "Rtl9",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/rtl9/browser-dash/rtl9.mpd",
+    "logo": "https://i.imgur.com/nFqjVNW.png",
+    "category": "Généraliste"
+  },
+  {
+    "id": 39,
+    "name": "LA UNE",
+    "url": "https://c9851ec-rbm-hilv-fsly.cdn.redbee.live/L22/6d35e26e/1bffdaaf.isml/.m3u8",
+    "logo": "https://cdn.tv-programme.com/photos/la-une-chaine-109.svg",
+    "category": "Généraliste"
+  },
+  {
+    "id": 40,
+    "name": "100 KIDZ",
+    "url": "https://amg02162-amg02162c4-samsung-fr-10083.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg02162-newenconnect-kidschannel-samsungfr/playlist.m3u8",
+    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
+    "category": "Jeunesse"
+  },
+  {
+    "id": 41,
+    "name": "SCIENCES ET VIE",
+    "url": "https://stream.ads.ottera.tv/playlist.m3u8?network_id=14172",
+    "logo": "https://cdn.tv-programme.com/photos/science-vie-tv-chaine-221.svg",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 42,
+    "name": "Planete+",
+    "url": "https://viamotionhsi.netplus.ch/live/eds/planeteplus/browser-HLS8/planeteplus.m3u8",
+    "logo": "https://cdn.tv-programme.com/photos/planete-plus-chaine-44.svg",
+    "category": "Découverte et Documentaires"
+  },
+  {
+    "id": 43,
+    "name": "Canal+ Live 1",
+    "url": "https://rereyano.ru/player/2/31",
+    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWlD8JuKvFgod-myveFhTlVEfzzgc0XLfWS6nVA233EQ&s",
+    "category": "Sport"
+  },
+  {
+    "id": 44,
+    "name": "Canal+ Live 2",
+    "url": "https://rereyano.ru/player/2/32",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-183.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 45,
+    "name": "Canal+ Live 3",
+    "url": "https://rereyano.ru/player/2/33",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-3-chaine-184.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 46,
+    "name": "Canal+ Live 4",
+    "url": "https://rereyano.ru/player/2/34",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-185.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 47,
+    "name": "Canal+ Live 5",
+    "url": "https://rereyano.ru/player/2/35",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-186.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 48,
+    "name": "Canal+ Live 6",
+    "url": "https://rereyano.ru/player/2/36",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-187.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 49,
+    "name": "Canal+ Live 7",
+    "url": "https://rereyano.ru/player/2/37",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-188.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 50,
+    "name": "Canal+ Live 8",
+    "url": "https://rereyano.ru/player/2/38",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-189.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 51,
+    "name": "Canal+",
+    "url": "https://rereyano.ru/player/2/11",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-chaine-81.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 52,
+    "name": "Canal+ Sport 360",
+    "url": "https://rereyano.ru/player/2/14",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-sport-360-chaine-179.svg",
+    "category": "Sport"
+  },
+  {
+    "id": 53,
+    "name": "Canal+ Sport ",
+    "url": "https://rereyano.ru/player/2/13",
+    "logo": "https://cdn.tv-programme.com/photos/canal-plus-sport-chaine-83.svg",
+    "category": "Sport"
+  }
+];
+
+        let currentChannel = null;
+        let currentPlayer = null;
+        let filteredChannels = [...channels];
+        let activeCategory = 'Toutes';
+
+        // Get unique categories
+        const categories = ['Toutes', ...new Set(channels.map(ch => ch.category))];
+
+        // Initialize
+        function init() {
+            renderCategoryFilters();
+            renderChannels();
+            setupEventListeners();
+        }
+
+        // Render category filters
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = categories.map(cat => `
+                <button class="category-btn ${cat === 'Toutes' ? 'active' : ''}" 
+                        onclick="filterByCategory('${cat}')">
+                    ${cat}
+                </button>
+            `).join('');
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            activeCategory = category;
+            applyFilters();
+            
+            // Update active state
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.trim() === category) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Apply all filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredChannels = channels.filter(channel => {
+                const matchesSearch = channel.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = activeCategory === 'Toutes' || channel.category === activeCategory;
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderChannels();
+        }
+
+        // Render channels
+        function renderChannels() {
+            const grid = document.getElementById('channelsGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (filteredChannels.length === 0) {
+                grid.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'flex';
+            noResults.style.display = 'none';
+            
+            grid.innerHTML = filteredChannels.map(channel => `
+                <div class="channel-card ${currentChannel?.id === channel.id ? 'active' : ''}" 
+                     onclick="playChannel(${channel.id})">
+                    <div class="channel-card-content">
+                        <img src="${channel.logo}" alt="${channel.name}" class="channel-card-logo">
+                        <div class="channel-card-info">
+                            <h3>${channel.name}</h3>
+                            <div class="channel-card-category">${channel.category}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load video
+        function loadVideo(url) {
+            const video = document.getElementById('videoPlayer');
+            const iframe = document.getElementById('iframePlayer');
+            
+            // Destroy previous player
+            if (currentPlayer) {
+                if (currentPlayer.destroy) currentPlayer.destroy();
+                currentPlayer = null;
+            }
+            
+            // Check if URL is a web player (iframe source)
+            const isWebPlayer = url.includes('rereyano.ru') || 
+                               (!url.endsWith('.mpd') && !url.endsWith('.m3u8') && url.includes('/player/'));
+            
+            if (isWebPlayer) {
+                // Use iframe for web players
+                video.style.display = 'none';
+                iframe.classList.add('active');
+                iframe.src = url;
+            } else {
+                // Use video element for direct streams
+                iframe.classList.remove('active');
+                iframe.src = '';
+                video.style.display = 'block';
+                
+                // Determine stream type
+                if (url.endsWith('.mpd')) {
+                    // DASH stream
+                    if (typeof dashjs !== 'undefined') {
+                        currentPlayer = dashjs.MediaPlayer().create();
+                        currentPlayer.initialize(video, url, true);
+                    }
+                } else if (url.endsWith('.m3u8')) {
+                    // HLS stream
+                    if (Hls.isSupported()) {
+                        currentPlayer = new Hls({
+                            enableWorker: true,
+                            lowLatencyMode: true,
+                            backBufferLength: 90
+                        });
+                        currentPlayer.loadSource(url);
+                        currentPlayer.attachMedia(video);
+                        currentPlayer.on(Hls.Events.MANIFEST_PARSED, function() {
+                            video.play();
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        // Safari native support
+                        video.src = url;
+                        video.addEventListener('loadedmetadata', function() {
+                            video.play();
+                        });
+                    }
+                } else {
+                    // Direct video URL
+                    video.src = url;
+                    video.play();
+                }
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('open');
+            toggle.classList.toggle('open');
+            overlay.classList.toggle('active');
+            
+            // Only shift content on desktop
+            if (window.innerWidth > 768) {
+                mainContent.classList.toggle('shifted');
+            }
+        }
+
+        // Close sidebar
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.remove('open');
+            toggle.classList.remove('open');
+            overlay.classList.remove('active');
+            mainContent.classList.remove('shifted');
+        }
+
+        // Auto-close sidebar on mobile after selecting channel
+        function playChannel(channelId) {
+            const channel = channels.find(ch => ch.id === channelId);
+            if (!channel) return;
+            
+            currentChannel = channel;
+            
+            // Update UI
+            document.getElementById('currentChannel').textContent = channel.name;
+            document.getElementById('currentCategory').textContent = channel.category;
+            document.getElementById('currentLogo').src = channel.logo;
+            document.getElementById('liveIndicator').style.display = 'flex';
+            document.getElementById('videoOverlay').classList.add('hidden');
+            
+            // Update active state
+            renderChannels();
+            
+            // Load video
+            loadVideo(channel.url);
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
