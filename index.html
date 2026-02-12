@@ -1068,6 +1068,30 @@
         let filteredChannels = [...channels];
         let activeCategory = 'Toutes';
 
+        // CORS Proxy configuration for GitHub Pages compatibility
+        const USE_PROXY = window.location.hostname.includes('github.io'); // Auto-detect if hosted on GitHub
+        const CORS_PROXIES = [
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+        ];
+        
+        let currentProxyIndex = 0;
+        
+        // Function to get proxied URL if needed
+        function getProxiedUrl(url) {
+            // Don't proxy iframes or reliable CDNs
+            if (!USE_PROXY ||
+                url.includes('rereyano.ru') || 
+                url.includes('akamaized.net') ||
+                url.includes('cloudfront.net') ||
+                url.includes('amagi.tv')) {
+                return url;
+            }
+            
+            // Use proxy for potentially blocked streams
+            return CORS_PROXIES[currentProxyIndex] + encodeURIComponent(url);
+        }
+
         // Get unique categories
         const categories = ['Toutes', ...new Set(channels.map(ch => ch.category))];
 
@@ -1160,7 +1184,7 @@
                                (!url.endsWith('.mpd') && !url.endsWith('.m3u8') && url.includes('/player/'));
             
             if (isWebPlayer) {
-                // Use iframe for web players
+                // Use iframe for web players (no proxy needed)
                 video.style.display = 'none';
                 iframe.classList.add('active');
                 iframe.src = url;
@@ -1170,12 +1194,26 @@
                 iframe.src = '';
                 video.style.display = 'block';
                 
+                // Get potentially proxied URL
+                const streamUrl = getProxiedUrl(url);
+                
                 // Determine stream type
                 if (url.endsWith('.mpd')) {
                     // DASH stream
                     if (typeof dashjs !== 'undefined') {
                         currentPlayer = dashjs.MediaPlayer().create();
-                        currentPlayer.initialize(video, url, true);
+                        currentPlayer.initialize(video, streamUrl, true);
+                        
+                        // Error handling for CORS issues
+                        currentPlayer.on('error', function(e) {
+                            console.error('DASH Error:', e);
+                            if (e.error === 'download' && USE_PROXY) {
+                                // Try next proxy
+                                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+                                console.log('Trying alternate proxy...');
+                                setTimeout(() => loadVideo(url), 1000);
+                            }
+                        });
                     }
                 } else if (url.endsWith('.m3u8')) {
                     // HLS stream
@@ -1183,23 +1221,41 @@
                         currentPlayer = new Hls({
                             enableWorker: true,
                             lowLatencyMode: true,
-                            backBufferLength: 90
+                            backBufferLength: 90,
+                            xhrSetup: function(xhr, url) {
+                                // Add any custom headers if needed
+                                xhr.withCredentials = false;
+                            }
                         });
-                        currentPlayer.loadSource(url);
+                        currentPlayer.loadSource(streamUrl);
                         currentPlayer.attachMedia(video);
+                        
                         currentPlayer.on(Hls.Events.MANIFEST_PARSED, function() {
                             video.play();
                         });
+                        
+                        // Error handling for CORS issues
+                        currentPlayer.on(Hls.Events.ERROR, function(event, data) {
+                            if (data.fatal) {
+                                console.error('HLS Fatal Error:', data);
+                                if (data.type === Hls.ErrorTypes.NETWORK_ERROR && USE_PROXY) {
+                                    // Try next proxy
+                                    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+                                    console.log('Trying alternate proxy...');
+                                    setTimeout(() => loadVideo(url), 1000);
+                                }
+                            }
+                        });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         // Safari native support
-                        video.src = url;
+                        video.src = streamUrl;
                         video.addEventListener('loadedmetadata', function() {
                             video.play();
                         });
                     }
                 } else {
                     // Direct video URL
-                    video.src = url;
+                    video.src = streamUrl;
                     video.play();
                 }
             }
