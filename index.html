@@ -709,8 +709,8 @@
         // CONFIGURATION
         // ==========================================
         
-        // REMPLACEZ L'URL CI-DESSOUS PAR VOTRE LIEN RAW GIST
-        const CHANNELS_URL = 'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/ce2e41044f3f7a16a9a17a55529695f6cea830b8/channels.json';
+        // Lien optimisé pour pointer vers la version la plus récente de votre fichier Gist
+        const CHANNELS_URL = 'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json';
         
         // ==========================================
 
@@ -749,7 +749,9 @@
         async function init() {
             try {
                 // Fetch channels from external source
-                const response = await fetch(CHANNELS_URL);
+                // On ajoute un timestamp pour éviter le cache du navigateur si vous faites une mise à jour
+                const response = await fetch(CHANNELS_URL + '?t=' + new Date().getTime());
+                
                 if (!response.ok) {
                     throw new Error('Erreur réseau lors du chargement de la liste');
                 }
