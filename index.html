@@ -73,41 +73,27 @@
         }
         .sidebar-subtitle { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
 
-        /* MODE SWITCHER (TV / SERIES) */
+        /* MODE SWITCHER */
         .mode-switcher {
-            display: flex;
-            background: var(--bg-primary);
-            padding: 4px;
-            border-radius: 12px;
-            margin-top: 1.5rem;
-            border: 1px solid var(--border);
+            display: flex; background: var(--bg-primary); padding: 4px;
+            border-radius: 12px; margin-top: 1.5rem; border: 1px solid var(--border);
         }
         .mode-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 8px;
-            font-family: 'Syne', sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: var(--text-secondary); cursor: pointer; border-radius: 8px;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
             transition: all 0.3s ease;
         }
         .mode-btn:hover { color: var(--text-primary); }
         .mode-btn.active {
-            background: var(--bg-tertiary);
-            color: var(--accent);
+            background: var(--bg-tertiary); color: var(--accent);
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .sidebar-filters {
-            padding: 1.5rem;
-            background: var(--bg-primary);
+            padding: 1.5rem; background: var(--bg-primary);
             border-bottom: 1px solid var(--border);
-            position: sticky; top: 165px; 
-            z-index: 9;
+            position: sticky; top: 165px; z-index: 9;
         }
 
         .sidebar-content { padding: 1rem; flex: 1; }
@@ -124,6 +110,7 @@
         }
         .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
+        /* Background */
         body::before {
             content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
             background: radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.03) 0%, transparent 50%),
@@ -136,7 +123,6 @@
         }
 
         .container { position: relative; z-index: 1; max-width: 1800px; margin: 0 auto; padding: 2rem; }
-
         header { margin-bottom: 2rem; animation: fadeInDown 0.8s ease-out; }
         h1 {
             font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 800;
@@ -145,16 +131,15 @@
             letter-spacing: -0.03em; margin-bottom: 0.5rem;
         }
 
+        /* Player */
         .player-section { margin-bottom: 0; animation: fadeInUp 0.8s ease-out 0.2s backwards; }
         .player-container {
             position: relative; background: var(--bg-secondary); border-radius: 24px; overflow: hidden;
             box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px var(--border), 0 0 40px var(--accent-glow);
         }
         .player-header {
-            padding: 1.5rem 2rem;
-            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.5rem 2rem; background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
         }
         .now-playing { display: flex; align-items: center; gap: 1rem; }
         .channel-logo {
@@ -167,10 +152,7 @@
             display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
             background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.3); border-radius: 20px;
         }
-        .live-dot {
-            width: 8px; height: 8px; background: #ff0000; border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
+        .live-dot { width: 8px; height: 8px; background: #ff0000; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .live-text { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
 
@@ -178,6 +160,21 @@
         #videoPlayer, #iframePlayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #iframePlayer { border: none; display: none; }
         #iframePlayer.active { display: block; }
+        
+        /* ZAPPING OVERLAY CONTROLS */
+        .zap-controls {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 20; display: flex; justify-content: space-between;
+        }
+        .zap-btn {
+            width: 15%; height: 100%; pointer-events: auto; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s; background: rgba(0,0,0,0.1);
+        }
+        .zap-btn:hover { opacity: 1; background: linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 100%); }
+        .zap-btn.next:hover { background: linear-gradient(-90deg, rgba(0,0,0,0.5) 0%, transparent 100%); }
+        .zap-btn svg { width: 40px; height: 40px; fill: white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+
         .video-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             display: flex; align-items: center; justify-content: center;
@@ -188,6 +185,7 @@
         .select-prompt h3 { font-family: 'Syne', sans-serif; font-size: 2rem; margin-bottom: 1rem; }
         .select-prompt p { color: var(--text-secondary); font-size: 1.1rem; }
 
+        /* Search & Filters */
         .search-box { width: 100%; position: relative; margin-bottom: 1rem; }
         .search-box input {
             width: 100%; padding: 1rem 1.5rem; background: var(--bg-secondary);
@@ -195,8 +193,6 @@
             color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease;
         }
         .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-        .search-box input::placeholder { color: var(--text-secondary); }
-
         .category-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
         .category-btn {
             padding: 0.6rem 1rem; background: var(--bg-secondary);
@@ -204,16 +200,20 @@
             color: var(--text-secondary); font-size: 0.85rem; font-weight: 500;
             cursor: pointer; transition: all 0.3s ease; white-space: nowrap;
         }
-        .category-btn:hover { background: var(--bg-tertiary); border-color: var(--accent); color: var(--text-primary); }
         .category-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg-primary); font-weight: 600; }
 
+        /* Channels Grid */
         .channels-grid { display: flex; flex-direction: column; gap: 0.75rem; }
         .channel-card {
             background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px;
-            padding: 1rem; cursor: pointer; transition: all 0.3s ease;
+            padding: 1rem; cursor: pointer; transition: all 0.2s ease;
             position: relative; overflow: hidden; display: flex; align-items: center; gap: 1rem;
         }
-        .channel-card:hover { border-color: var(--accent); transform: translateX(4px); box-shadow: 0 4px 20px var(--shadow); }
+        /* Style spécial pour la navigation télécommande */
+        .channel-card.focused, .channel-card:hover {
+            border-color: var(--accent); transform: translateX(4px);
+            box-shadow: 0 4px 20px var(--shadow); background: var(--bg-secondary);
+        }
         .channel-card.active {
             border-color: var(--accent); background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, var(--bg-tertiary) 100%);
             box-shadow: 0 0 20px var(--accent-glow);
@@ -242,6 +242,7 @@
             h1 { font-size: 2.5rem; }
             .player-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
             .sidebar-filters { top: 180px; }
+            .zap-btn { opacity: 1; background: transparent; width: 20%; } /* Toujours visible sur mobile */
         }
         @media (min-width: 769px) and (max-width: 1024px) {
             .sidebar { width: 350px; left: -350px; }
@@ -250,8 +251,6 @@
         }
 
         .no-results { text-align: center; padding: 3rem 1rem; color: var(--text-secondary); }
-        .no-results h3 { font-family: 'Syne', sans-serif; font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--text-primary); }
-        
         .sidebar::-webkit-scrollbar { width: 8px; }
         .sidebar::-webkit-scrollbar-track { background: var(--bg-primary); }
         .sidebar::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; }
@@ -270,7 +269,6 @@
             <div class="sidebar-title">TeslaTV</div>
             <div class="sidebar-subtitle">Chargement...</div>
             
-            <!-- SÉLECTEUR DE MODE -->
             <div class="mode-switcher">
                 <button class="mode-btn active" onclick="switchMode('tv')">Chaînes TV</button>
                 <button class="mode-btn" onclick="switchMode('series')">Séries</button>
@@ -314,12 +312,22 @@
                         </div>
                     </div>
                     <div class="video-wrapper">
+                        <!-- ZAPPING CONTROLS (OVERLAY) -->
+                        <div class="zap-controls">
+                            <div class="zap-btn prev" onclick="zap(-1)">
+                                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                            </div>
+                            <div class="zap-btn next" onclick="zap(1)">
+                                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                            </div>
+                        </div>
+
                         <video id="videoPlayer" controls></video>
                         <iframe id="iframePlayer" allowfullscreen allow="autoplay"></iframe>
                         <div class="video-overlay" id="videoOverlay">
                             <div class="select-prompt">
                                 <h3>Bienvenue</h3>
-                                <p>Utilisez le menu pour choisir une chaîne ou une série</p>
+                                <p>Appuyez sur "Entrée" ou le menu pour choisir</p>
                             </div>
                         </div>
                     </div>
@@ -329,24 +337,18 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION DES FICHIERS JSON
-        // ==========================================
-        
-        // Ton fichier actuel (TV)
+        // CONFIGURATION
         const TV_URL = 'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json';
-        
-        // COLLE ICI TON NOUVEAU LIEN RAW GIST POUR LES SÉRIES :
-        const SERIES_URL = 'https://gist.githubusercontent.com/mikefri/fc75ba4ad4eb3d8da1a3d1f6dc9c83f2/raw/series.json'; 
-        
-        // ==========================================
+        const SERIES_URL = 'https://gist.githubusercontent.com/mikefri/d914d7a8684d5f4900890bc41d9c223c/raw/series.json'; 
 
         let tvChannels = [];
         let seriesList = [];
-        let currentMode = 'tv'; // 'tv' ou 'series'
+        let currentMode = 'tv'; 
         let currentChannel = null;
         let currentPlayer = null;
         let activeCategory = 'Toutes';
+        let filteredList = []; // Liste actuellement affichée (pour le zapping et la télécommande)
+        let focusedIndex = -1; // Pour la navigation clavier
 
         const USE_PROXY = window.location.hostname.includes('github.io');
         const CORS_PROXIES = ['https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
@@ -358,21 +360,85 @@
         }
 
         async function init() {
-            // On charge la TV par défaut au démarrage
             await loadContent('tv');
+            
+            // GESTION TÉLÉCOMMANDE / CLAVIER
+            document.addEventListener('keydown', handleRemoteControl);
+        }
+
+        // --- LOGIQUE TÉLÉCOMMANDE ---
+        function handleRemoteControl(e) {
+            const sidebar = document.getElementById('sidebar');
+            const isSidebarOpen = sidebar.classList.contains('open');
+
+            if (isSidebarOpen) {
+                // Navigation dans la liste
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    focusedIndex = Math.min(focusedIndex + 1, filteredList.length - 1);
+                    updateFocus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    focusedIndex = Math.max(focusedIndex - 1, 0);
+                    updateFocus();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (focusedIndex >= 0 && filteredList[focusedIndex]) {
+                        playChannel(filteredList[focusedIndex].id);
+                    }
+                } else if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'ArrowRight') {
+                    closeSidebar();
+                }
+            } else {
+                // Navigation Lecteur (Zapping)
+                if (e.key === 'ArrowRight') {
+                    zap(1); // Chaîne suivante
+                } else if (e.key === 'ArrowLeft') {
+                    zap(-1); // Chaîne précédente
+                } else if (e.key === 'Enter' || e.key === 'ArrowUp') {
+                    toggleSidebar(); // Ouvrir menu
+                }
+            }
+        }
+
+        function updateFocus() {
+            // Retire le focus actuel
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('focused'));
+            
+            // Ajoute le focus au nouvel élément
+            const cards = document.querySelectorAll('.channel-card');
+            if (cards[focusedIndex]) {
+                cards[focusedIndex].classList.add('focused');
+                cards[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // --- ZAPPING RAPIDE ---
+        function zap(direction) {
+            if (!currentChannel || filteredList.length === 0) return;
+
+            // Trouver l'index de la chaîne actuelle dans la liste FILTRÉE
+            const currentIndex = filteredList.findIndex(ch => ch.id === currentChannel.id);
+            if (currentIndex === -1) return;
+
+            // Calculer le prochain index (avec boucle)
+            let newIndex = currentIndex + direction;
+            if (newIndex >= filteredList.length) newIndex = 0;
+            if (newIndex < 0) newIndex = filteredList.length - 1;
+
+            // Lancer la nouvelle chaîne
+            playChannel(filteredList[newIndex].id);
         }
 
         async function switchMode(mode) {
             if (currentMode === mode && (mode === 'tv' ? tvChannels.length : seriesList.length) > 0) return;
-            
             currentMode = mode;
             activeCategory = 'Toutes';
+            focusedIndex = -1; // Reset navigation
             
-            // Mise à jour visuelle des boutons
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`).classList.add('active');
             
-            // On vide l'affichage en attendant
             document.getElementById('channelsGrid').innerHTML = '<div class="loading-text">Chargement...</div>';
             document.getElementById('categoryFilters').innerHTML = '';
             
@@ -384,58 +450,36 @@
             let data = mode === 'tv' ? tvChannels : seriesList;
             
             try {
-                // Si on a pas encore chargé les données pour ce mode, on va les chercher
                 if (data.length === 0) {
-                    if (url === 'LIEN_GIST_SERIES_RAW_ICI' && mode === 'series') {
-                        throw new Error("Lien Series non configuré");
-                    }
                     const response = await fetch(url + '?t=' + new Date().getTime());
                     if (!response.ok) throw new Error('Erreur réseau');
                     data = await response.json();
-                    
-                    // On sauvegarde en mémoire pour ne pas recharger à chaque clic
                     if (mode === 'tv') tvChannels = data; else seriesList = data;
                 }
-
                 updateUI(data);
-                
             } catch (error) {
                 console.error('Erreur:', error);
-                document.getElementById('channelsGrid').innerHTML = `
-                    <div class="no-results" style="display:block">
-                        <h3>Erreur de chargement</h3>
-                        <p>${error.message === "Lien Series non configuré" ? "Configurez SERIES_URL dans le code" : "Impossible de charger la liste."}</p>
-                    </div>
-                `;
-                document.querySelector('.sidebar-subtitle').textContent = `0 ${mode === 'tv' ? 'chaînes' : 'séries'}`;
+                document.getElementById('channelsGrid').innerHTML = `<div class="no-results" style="display:block"><h3>Erreur</h3><p>Impossible de charger.</p></div>`;
+                document.querySelector('.sidebar-subtitle').textContent = `0 contenu`;
             }
         }
 
         function updateUI(data) {
-            // Mise à jour compteur
-            const label = currentMode === 'tv' ? 'chaînes disponibles' : 'séries disponibles';
-            document.querySelector('.sidebar-subtitle').textContent = `${data.length} ${label}`;
-
-            // Générer les catégories
+            document.querySelector('.sidebar-subtitle').textContent = `${data.length} ${currentMode === 'tv' ? 'chaînes' : 'séries'}`;
             const categories = ['Toutes', ...new Set(data.map(ch => ch.category))];
-            
-            // Rendu Filtres
             const filterContainer = document.getElementById('categoryFilters');
             filterContainer.innerHTML = categories.map(cat => `
                 <button class="category-btn ${cat === activeCategory ? 'active' : ''}" onclick="filterByCategory('${cat}')">${cat}</button>
             `).join('');
-
             applyFilters();
         }
 
         function filterByCategory(category) {
             activeCategory = category;
-            
-            // Update active class on filter buttons
+            focusedIndex = -1; // Reset navigation quand on change de filtre
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.textContent === category);
             });
-
             applyFilters();
         }
 
@@ -444,22 +488,22 @@
             const grid = document.getElementById('channelsGrid');
             const noResults = document.getElementById('noResults');
             
-            // On sélectionne la bonne liste de données selon le mode actuel
             const currentData = currentMode === 'tv' ? tvChannels : seriesList;
 
-            const filtered = currentData.filter(item => {
+            // Mise à jour de la liste globale filtrée (pour le zapping)
+            filteredList = currentData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm);
                 const matchesCategory = activeCategory === 'Toutes' || item.category === activeCategory;
                 return matchesSearch && matchesCategory;
             });
             
-            if (filtered.length === 0) {
+            if (filteredList.length === 0) {
                 grid.style.display = 'none';
                 noResults.style.display = 'block';
             } else {
                 grid.style.display = 'flex';
                 noResults.style.display = 'none';
-                grid.innerHTML = filtered.map(item => `
+                grid.innerHTML = filteredList.map((item, index) => `
                     <div class="channel-card ${currentChannel?.id === item.id ? 'active' : ''}" onclick="playChannel(${item.id})">
                         <div class="channel-card-content">
                             <img src="${item.logo || 'https://i.imgur.com/QxHt9NC.png'}" class="channel-card-logo" onerror="this.src='https://i.imgur.com/QxHt9NC.png'">
@@ -474,10 +518,7 @@
         }
 
         function playChannel(id) {
-            // On cherche dans la liste active
-            const currentData = currentMode === 'tv' ? tvChannels : seriesList;
-            const item = currentData.find(ch => ch.id === id);
-            
+            const item = filteredList.find(ch => ch.id === id);
             if (!item) return;
             
             currentChannel = item;
@@ -487,14 +528,13 @@
             const logoEl = document.getElementById('currentLogo');
             logoEl.src = item.logo || 'https://i.imgur.com/QxHt9NC.png';
             
-            // Cacher "En Direct" si on est en mode séries
-            const liveIndicator = document.getElementById('liveIndicator');
-            liveIndicator.style.display = currentMode === 'series' ? 'none' : 'flex';
-            
+            document.getElementById('liveIndicator').style.display = currentMode === 'series' ? 'none' : 'flex';
             document.getElementById('videoOverlay').classList.add('hidden');
-            applyFilters(); // Rafraichir la sélection visuelle (bordure active)
+            
+            applyFilters(); // Rafraichir visuel
             loadVideo(item.url);
             
+            // Fermer le menu sur mobile ou si activé par entrée
             if (window.innerWidth <= 768) closeSidebar();
         }
 
@@ -521,12 +561,7 @@
                     if (typeof dashjs !== 'undefined') {
                         currentPlayer = dashjs.MediaPlayer().create();
                         currentPlayer.initialize(video, streamUrl, true);
-                        currentPlayer.on('error', function(e) {
-                            if (e.error === 'download' && USE_PROXY) {
-                                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-                                setTimeout(() => loadVideo(url), 1000);
-                            }
-                        });
+                        currentPlayer.on('error', (e) => { if (e.error === 'download' && USE_PROXY) retryProxy(url); });
                     }
                 } else if (url.endsWith('.m3u8')) {
                     if (Hls.isSupported()) {
@@ -534,12 +569,7 @@
                         currentPlayer.loadSource(streamUrl);
                         currentPlayer.attachMedia(video);
                         currentPlayer.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-                        currentPlayer.on(Hls.Events.ERROR, (e, data) => {
-                            if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR && USE_PROXY) {
-                                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-                                setTimeout(() => loadVideo(url), 1000);
-                            }
-                        });
+                        currentPlayer.on(Hls.Events.ERROR, (e, data) => { if (data.fatal && USE_PROXY) retryProxy(url); });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = streamUrl;
                         video.play();
@@ -551,14 +581,29 @@
             }
         }
 
+        function retryProxy(url) {
+            currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+            setTimeout(() => loadVideo(url), 1000);
+        }
+
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarToggle').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            // Si fermé, on ouvre et on reset le focus
+            if (!sidebar.classList.contains('open')) {
+                focusedIndex = 0;
+                updateFocus();
+            }
+            
+            sidebar.classList.toggle('open');
+            toggle.classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('active');
             if (window.innerWidth > 768) document.getElementById('mainContent').classList.toggle('shifted');
         }
+
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarToggle').classList.remove('open');
