@@ -621,6 +621,13 @@
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: var(--accent);
         }
+        
+        .loading-text {
+            text-align: center;
+            padding: 20px;
+            color: var(--accent);
+            font-family: 'Syne', sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -638,7 +645,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">Chaînes TV</div>
-            <div class="sidebar-subtitle">50+ chaînes disponibles</div>
+            <div class="sidebar-subtitle">Chargement...</div>
         </div>
 
         <div class="sidebar-filters">
@@ -649,7 +656,9 @@
         </div>
 
         <div class="sidebar-content">
-            <div class="channels-grid" id="channelsGrid"></div>
+            <div class="channels-grid" id="channelsGrid">
+                <div class="loading-text">Chargement des chaînes...</div>
+            </div>
             <div class="no-results" id="noResults" style="display: none;">
                 <h3>Aucune chaîne</h3>
                 <p>Modifier votre recherche</p>
@@ -696,377 +705,21 @@
     </div>
 
     <script>
-        const channels = [
-  {
-    "id": 0,
-    "name": "Canal+ Sport",
-    "url": "https://rereyano.ru/player/2/13",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-sport-chaine-83.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 1,
-    "name": "TF1",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/tf1hd/browser-dash/tf1hd.mpd",
-    "logo": "https://i.imgur.com/QxHt9NC.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 2,
-    "name": "TF1 Serie Films",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/hd1/browser-dash/hd1.mpd",
-    "logo": "https://i.imgur.com/4CJIDKQ.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 3,
-    "name": "France 2",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/france2hd/browser-HLS8/france2hd.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/France_2_2018.svg/512px-France_2_2018.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 4,
-    "name": "France 3",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/france3hd/browser-HLS8/france3hd.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/France_3_2018.svg/512px-France_3_2018.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 5,
-    "name": "France 4",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/france4hd/browser-HLS8/france4hd.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/France_4_2018.svg/512px-France_4_2018.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 6,
-    "name": "France 5",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/france5hd/browser-HLS8/france5hd.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/France_5_2018.svg/512px-France_5_2018.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 7,
-    "name": "M6",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/m6hd/browser-dash/m6hd.mpd",
-    "logo": "https://i.imgur.com/7GVp3fW.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 8,
-    "name": "Arte",
-    "url": "https://artesimulcast.akamaized.net/hls/live/2031003/artelive_fr/index.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Arte-Logo.svg/341px-Arte-Logo.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 9,
-    "name": "W9",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/w9/browser-dash/w9.mpd",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/W9_2018.svg/1200px-W9_2018.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 10,
-    "name": "LCI",
-    "url": "https://raw.githubusercontent.com/ipstreet312/freeiptv/master/ressources/btv/py/lci1.m3u8",
-    "logo": "https://i.imgur.com/DED8EXs.png",
-    "category": "Information"
-  },
-  {
-    "id": 11,
-    "name": "TFX",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/nt1/browser-HLS8/nt1.m3u8",
-    "logo": "https://i.imgur.com/d91GcVf.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 12,
-    "name": "TMC",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/tmc/browser-HLS8/tmc.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/5/54/TMC_logo.svg/512px-TMC_logo.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 13,
-    "name": "Cherie25",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/cherie25/browser-HLS8/cherie25.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Logo_Ch%C3%A9rie_25.svg/512px-Logo_Ch%C3%A9rie_25.svg.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 14,
-    "name": "T18",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/t18/browser-HLS8/t18.m3u8",
-    "logo": "https://static-cdn.tv.sfr.net/data/img/apps/chaines/logos/T18100x100.png?h=100",
-    "category": "Généraliste"
-  },
-  {
-    "id": 15,
-    "name": "NOVO 19",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/novo19/browser-HLS8/novo19.m3u8",
-    "logo": "https://i.ibb.co/1t2g7bBq/novo19.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 16,
-    "name": "RAKUTEN TOP FILMS TV",
-    "url": "https://01ac9352fbfa4204998783d41f9b1a2e.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6068/master.m3u8",
-    "logo": "https://i.imgur.com/1IXQoWq.png",
-    "category": "Cinéma et Divertissement"
-  },
-  {
-    "id": 17,
-    "name": "RMC DÉCOUVERTE",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/rmcdecouverte/browser-HLS8/rmcdecouverte.m3u8",
-    "logo": "https://cdn.tv-programme.com/photos/rmc-decouverte-chaine-72.svg",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 18,
-    "name": "RMC Story",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/numero23/browser-HLS8/numero23.m3u8",
-    "logo": "https://i.imgur.com/h53nsyJ.png",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 19,
-    "name": "L'équipe",
-    "url": "https://dshn8inoshngm.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gac2i63dmu8b7/LEquipe_FR.m3u8",
-    "logo": "https://cdn.tv-programme.com/photos/l-equipe-chaine-50.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 20,
-    "name": "L'ÉQUIPE LIVE 1",
-    "url": "https://d3fikx9gxqicmt.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-3rguah8p42dlq/d903c3c9-a66d-4ed1-a922-d87a40815790/2.m3u8",
-    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
-    "category": "Sport"
-  },
-  {
-    "id": 21,
-    "name": "L'ÉQUIPE LIVE 2",
-    "url": "https://d2sfyr4abdyf7s.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-d5yhiqv8rl7x3/Lequipe2_FR.m3u8",
-    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
-    "category": "Sport"
-  },
-  {
-    "id": 22,
-    "name": "BFM",
-    "url": "https://ncdn-live-bfm.pfd.sfr.net/shls/LIVE$BFM_TV/index.m3u8?start=LIVE&end=END",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/4/40/BFM_TV_logo.png",
-    "category": "Information"
-  },
-  {
-    "id": 23,
-    "name": "MOTORVISION FR",
-    "url": "https://d1qswsont218xa.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-im2kwho8ev6jk/mv_fr.m3u8",
-    "logo": "https://i.ibb.co/0YKFn02/motorvisionfrs.png",
-    "category": "Sport"
-  },
-  {
-    "id": 24,
-    "name": "Gulli",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/gulli/browser-HLS8/gulli.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/fr/4/43/18._Gulli.png",
-    "category": "Jeunesse"
-  },
-  {
-    "id": 25,
-    "name": "Canalj",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/canalj/browser-HLS8/canalj.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/fr/6/69/Logo_canal_J.png",
-    "category": "Jeunesse"
-  },
-  {
-    "id": 26,
-    "name": "GONG",
-    "url": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01596-gongnetworks-gong-samsungfr/playlist.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/fr/e/e7/Gong_%28cha%C3%AEne_de_t%C3%A9l%C3%A9vision%29_Logo.png",
-    "category": "Jeunesse"
-  },
-  {
-    "id": 27,
-    "name": "CNews",
-    "url": "https://hls-m015-live-aka-canalplus.akamaized.net/live/disk/cnews-clair-hd/hls-v3-hd-clair/cnews-clair-hd.m3u8",
-    "logo": "https://logos-marques.com/wp-content/uploads/2022/03/CNews-Logo.jpg",
-    "category": "Information"
-  },
-  {
-    "id": 28,
-    "name": "Rakuten TV Films Action",
-    "url": "https://01ac9352fbfa4204998783d41f9b1a2e.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6068/master.m3u8",
-    "logo": "https://www.planetecsat.com/wp-content/uploads/2024/05/logo-rakuten-tv-action.png",
-    "category": "Cinéma et Divertissement"
-  },
-  {
-    "id": 29,
-    "name": "DRIVE AUTO",
-    "url": "https://amg01796-amg01796c2-rakuten-uk-3887.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-drivetv-rakutenuk/playlist.m3u8",
-    "logo": "https://i.ibb.co/Xs1PxZs/driveauto.png",
-    "category": "Sport"
-  },
-  {
-    "id": 30,
-    "name": "ALLO CINÉ",
-    "url": "https://d1yl6bf4hrzbr0.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-5km3zs4zs9sp0/allo.m3u8",
-    "logo": "https://i.ibb.co/2SHJGsj/allocine.png",
-    "category": "Cinéma et Divertissement"
-  },
-  {
-    "id": 31,
-    "name": "Cstar",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/d17/browser-HLS8/d17.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Logo_CStar_2016.svg/1200px-Logo_CStar_2016.svg.png",
-    "category": "Cinéma et Divertissement"
-  },
-  {
-    "id": 32,
-    "name": "Top Sci-Fi",
-    "url": "https://amg01796-amg01796c14-samsung-fr-5846.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-topscifi-samsungfr/playlist.m3u8",
-    "logo": "https://tvpdotcomdynamiclogopeu.samsungcloud.tv/resize?url=https://tvpnlogopeu.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/FR4600001FK_20250121T012945SQUARE.png",
-    "category": "Cinéma et Divertissement"
-  },
-  {
-    "id": 33,
-    "name": "Animaux",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/animaux/browser-dash/animaux.mpd",
-    "logo": "https://i.imgur.com/FM9FVAG.png",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 34,
-    "name": "MTV",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/mtvfrance/browser-HLS8/mtvfrance.m3u8",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/MTV_2021_%28brand_version%29.svg/960px-MTV_2021_%28brand_version%29.svg.png",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 36,
-    "name": "AB1",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/ab1/browser-dash/ab1.mpd",
-    "logo": "https://i.imgur.com/9C7UsOe.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 37,
-    "name": "6ter",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/6ter/browser-HLS8/6ter.m3u8",
-    "logo": "https://i.imgur.com/2nd5Cox.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 38,
-    "name": "Rtl9",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/rtl9/browser-dash/rtl9.mpd",
-    "logo": "https://i.imgur.com/nFqjVNW.png",
-    "category": "Généraliste"
-  },
-  {
-    "id": 39,
-    "name": "LA UNE",
-    "url": "https://c9851ec-rbm-hilv-fsly.cdn.redbee.live/L22/6d35e26e/1bffdaaf.isml/.m3u8",
-    "logo": "https://cdn.tv-programme.com/photos/la-une-chaine-109.svg",
-    "category": "Généraliste"
-  },
-  {
-    "id": 40,
-    "name": "100 KIDZ",
-    "url": "https://amg02162-amg02162c4-samsung-fr-10083.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg02162-newenconnect-kidschannel-samsungfr/playlist.m3u8",
-    "logo": "https://i.ibb.co/KXhYwm0/lequipe.png",
-    "category": "Jeunesse"
-  },
-  {
-    "id": 41,
-    "name": "SCIENCES ET VIE",
-    "url": "https://stream.ads.ottera.tv/playlist.m3u8?network_id=14172",
-    "logo": "https://cdn.tv-programme.com/photos/science-vie-tv-chaine-221.svg",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 42,
-    "name": "Planete+",
-    "url": "https://viamotionhsi.netplus.ch/live/eds/planeteplus/browser-HLS8/planeteplus.m3u8",
-    "logo": "https://cdn.tv-programme.com/photos/planete-plus-chaine-44.svg",
-    "category": "Découverte et Documentaires"
-  },
-  {
-    "id": 43,
-    "name": "Canal+ Live 1",
-    "url": "https://rereyano.ru/player/2/31",
-    "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWlD8JuKvFgod-myveFhTlVEfzzgc0XLfWS6nVA233EQ&s",
-    "category": "Sport"
-  },
-  {
-    "id": 44,
-    "name": "Canal+ Live 2",
-    "url": "https://rereyano.ru/player/2/32",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-183.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 45,
-    "name": "Canal+ Live 3",
-    "url": "https://rereyano.ru/player/2/33",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-3-chaine-184.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 46,
-    "name": "Canal+ Live 4",
-    "url": "https://rereyano.ru/player/2/34",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-185.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 47,
-    "name": "Canal+ Live 5",
-    "url": "https://rereyano.ru/player/2/35",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-186.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 48,
-    "name": "Canal+ Live 6",
-    "url": "https://rereyano.ru/player/2/36",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-187.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 49,
-    "name": "Canal+ Live 7",
-    "url": "https://rereyano.ru/player/2/37",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-188.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 50,
-    "name": "Canal+ Live 8",
-    "url": "https://rereyano.ru/player/2/38",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-live-2-chaine-189.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 51,
-    "name": "Canal+",
-    "url": "https://rereyano.ru/player/2/11",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-chaine-81.svg",
-    "category": "Sport"
-  },
-  {
-    "id": 52,
-    "name": "Canal+ Sport 360",
-    "url": "https://rereyano.ru/player/2/14",
-    "logo": "https://cdn.tv-programme.com/photos/canal-plus-sport-360-chaine-179.svg",
-    "category": "Sport"
-  }
-];
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        
+        // REMPLACEZ L'URL CI-DESSOUS PAR VOTRE LIEN RAW GIST
+        const CHANNELS_URL = 'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/ce2e41044f3f7a16a9a17a55529695f6cea830b8/channels.json';
+        
+        // ==========================================
 
+        let channels = [];
         let currentChannel = null;
         let currentPlayer = null;
-        let filteredChannels = [...channels];
+        let filteredChannels = [];
         let activeCategory = 'Toutes';
+        let categories = [];
 
         // CORS Proxy configuration for GitHub Pages compatibility
         const USE_PROXY = window.location.hostname.includes('github.io'); // Auto-detect if hosted on GitHub
@@ -1092,14 +745,40 @@
             return CORS_PROXIES[currentProxyIndex] + encodeURIComponent(url);
         }
 
-        // Get unique categories
-        const categories = ['Toutes', ...new Set(channels.map(ch => ch.category))];
-
-        // Initialize
-        function init() {
-            renderCategoryFilters();
-            renderChannels();
-            setupEventListeners();
+        // Initialize application
+        async function init() {
+            try {
+                // Fetch channels from external source
+                const response = await fetch(CHANNELS_URL);
+                if (!response.ok) {
+                    throw new Error('Erreur réseau lors du chargement de la liste');
+                }
+                
+                channels = await response.json();
+                
+                // Initialize filters
+                categories = ['Toutes', ...new Set(channels.map(ch => ch.category))];
+                filteredChannels = [...channels];
+                
+                // Update UI
+                document.querySelector('.sidebar-subtitle').textContent = `${channels.length} chaînes disponibles`;
+                
+                renderCategoryFilters();
+                renderChannels();
+                setupEventListeners();
+                
+                console.log('TeslaTV initialisé avec succès.');
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('channelsGrid').innerHTML = `
+                    <div class="no-results" style="display:block; color: #ff4d4d;">
+                        <h3>Erreur de chargement</h3>
+                        <p>Impossible de charger la liste des chaînes.</p>
+                        <p style="font-size: 0.8rem; margin-top:10px;">Vérifiez l'URL du fichier JSON.</p>
+                    </div>
+                `;
+            }
         }
 
         // Render category filters
@@ -1158,7 +837,7 @@
                 <div class="channel-card ${currentChannel?.id === channel.id ? 'active' : ''}" 
                      onclick="playChannel(${channel.id})">
                     <div class="channel-card-content">
-                        <img src="${channel.logo}" alt="${channel.name}" class="channel-card-logo">
+                        <img src="${channel.logo}" alt="${channel.name}" class="channel-card-logo" onerror="this.src='https://i.imgur.com/QxHt9NC.png'">
                         <div class="channel-card-info">
                             <h3>${channel.name}</h3>
                             <div class="channel-card-category">${channel.category}</div>
@@ -1306,7 +985,10 @@
             // Update UI
             document.getElementById('currentChannel').textContent = channel.name;
             document.getElementById('currentCategory').textContent = channel.category;
-            document.getElementById('currentLogo').src = channel.logo;
+            const logoEl = document.getElementById('currentLogo');
+            logoEl.src = channel.logo;
+            logoEl.onerror = function() { this.src = 'https://i.imgur.com/QxHt9NC.png'; }; // Fallback logo
+
             document.getElementById('liveIndicator').style.display = 'flex';
             document.getElementById('videoOverlay').classList.add('hidden');
             
@@ -1327,3 +1009,4 @@
     </script>
 </body>
 </html>
+```
