@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeslaTV - Recording</title>
+    <title>TeslaTV - Cast & Record</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+    <!-- Google Cast SDK -->
+    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
     <style>
         :root {
             --bg-primary: #0a0e17;
@@ -19,6 +21,7 @@
             --border: rgba(255, 255, 255, 0.08);
             --shadow: rgba(0, 0, 0, 0.4);
             --rec-red: #ff0040;
+            --cast-blue: #4285f4;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -141,6 +144,7 @@
         .player-header {
             padding: 1.5rem 2rem; background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
             border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem;
         }
         .now-playing { display: flex; align-items: center; gap: 1rem; }
         .channel-logo {
@@ -150,7 +154,7 @@
         .channel-info h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
         .channel-category { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
         
-        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        .header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
         
         .live-indicator {
             display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
@@ -159,6 +163,41 @@
         .live-dot { width: 8px; height: 8px; background: #ff0000; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .live-text { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* CAST BUTTON */
+        .cast-button {
+            position: relative;
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.75rem 1.25rem; border: none; border-radius: 12px;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.3s ease;
+            background: var(--bg-tertiary); color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .cast-button:hover:not(.disabled) {
+            background: var(--cast-blue);
+            border-color: var(--cast-blue);
+            box-shadow: 0 0 20px rgba(66, 133, 244, 0.4);
+            color: white;
+        }
+        .cast-button.casting {
+            background: var(--cast-blue);
+            border-color: var(--cast-blue);
+            color: white;
+            animation: castPulse 2s ease-in-out infinite;
+        }
+        .cast-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @keyframes castPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(66, 133, 244, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(66, 133, 244, 0.7); }
+        }
+        .cast-icon {
+            width: 20px; height: 20px;
+            fill: currentColor;
+        }
 
         /* RECORDING BUTTON */
         .rec-button {
@@ -206,6 +245,37 @@
             color: var(--rec-red);
         }
         .rec-size {
+            color: var(--text-secondary);
+        }
+
+        /* CAST STATUS OVERLAY */
+        .cast-status {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--cast-blue);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 15;
+            display: none;
+        }
+        .cast-status.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cast-device-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            color: var(--cast-blue);
+            margin-bottom: 0.25rem;
+        }
+        .cast-channel-name {
+            font-size: 0.9rem;
             color: var(--text-secondary);
         }
 
@@ -370,6 +440,16 @@
                                 <div class="live-dot"></div>
                                 <div class="live-text">En Direct</div>
                             </div>
+                            
+                            <!-- Cast Button -->
+                            <button class="cast-button disabled" id="castButton" onclick="toggleCast()">
+                                <svg class="cast-icon" viewBox="0 0 24 24">
+                                    <path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                                </svg>
+                                <span id="castButtonText">Cast</span>
+                            </button>
+                            
+                            <!-- Record Button -->
                             <button class="rec-button disabled" id="recButton" onclick="toggleRecording()">
                                 <div class="rec-icon"></div>
                                 <div class="rec-info">
@@ -380,6 +460,12 @@
                         </div>
                     </div>
                     <div class="video-wrapper">
+                        <!-- Cast Status Overlay -->
+                        <div class="cast-status" id="castStatus">
+                            <div class="cast-device-name" id="castDeviceName">Casting to...</div>
+                            <div class="cast-channel-name" id="castChannelName">-</div>
+                        </div>
+                        
                         <div class="zap-controls">
                             <div class="zap-btn prev" onclick="zap(-1)">
                                 <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
@@ -389,7 +475,7 @@
                             </div>
                         </div>
 
-                        <video id="videoPlayer" controls></video>
+                        <video id="videoPlayer" controls crossorigin="anonymous"></video>
                         <iframe id="iframePlayer" allowfullscreen allow="autoplay"></iframe>
                         <div class="video-overlay" id="videoOverlay">
                             <div class="select-prompt">
@@ -423,6 +509,12 @@
         let recordingStartTime = null;
         let recordingInterval = null;
 
+        // CAST VARIABLES
+        let castSession = null;
+        let castContext = null;
+        let remotePlayer = null;
+        let remotePlayerController = null;
+
         const USE_PROXY = window.location.hostname.includes('github.io');
         const CORS_PROXIES = ['https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
         let currentProxyIndex = 0;
@@ -432,9 +524,140 @@
             return CORS_PROXIES[currentProxyIndex] + encodeURIComponent(url);
         }
 
+        // --- CAST INITIALIZATION ---
+        window['__onGCastApiAvailable'] = function(isAvailable) {
+            if (isAvailable) {
+                initializeCastApi();
+            }
+        };
+
+        function initializeCastApi() {
+            try {
+                castContext = cast.framework.CastContext.getInstance();
+                castContext.setOptions({
+                    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+                });
+
+                remotePlayer = new cast.framework.RemotePlayer();
+                remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
+
+                // Event listeners
+                castContext.addEventListener(
+                    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+                    onCastSessionChanged
+                );
+
+                remotePlayerController.addEventListener(
+                    cast.framework.RemotePlayerEventType.IS_CONNECTED_CHANGED,
+                    onCastConnectionChanged
+                );
+
+                document.getElementById('castButton').classList.remove('disabled');
+                console.log('✅ Google Cast initialized');
+            } catch (error) {
+                console.error('❌ Cast initialization failed:', error);
+            }
+        }
+
+        function onCastSessionChanged(event) {
+            switch (event.sessionState) {
+                case cast.framework.SessionState.SESSION_STARTED:
+                case cast.framework.SessionState.SESSION_RESUMED:
+                    castSession = castContext.getCurrentSession();
+                    updateCastButton(true);
+                    if (currentChannel) {
+                        loadMediaToCast(currentChannel);
+                    }
+                    break;
+                case cast.framework.SessionState.SESSION_ENDED:
+                    castSession = null;
+                    updateCastButton(false);
+                    document.getElementById('castStatus').classList.remove('active');
+                    break;
+            }
+        }
+
+        function onCastConnectionChanged() {
+            if (remotePlayer.isConnected) {
+                console.log('✅ Connected to:', remotePlayer.friendlyName);
+            }
+        }
+
+        function toggleCast() {
+            const castButton = document.getElementById('castButton');
+            if (castButton.classList.contains('disabled')) return;
+
+            if (castSession) {
+                // Disconnect
+                castContext.endCurrentSession(true);
+            } else {
+                // Request cast
+                castContext.requestSession().then(
+                    () => console.log('Cast session started'),
+                    error => {
+                        if (error !== 'cancel') {
+                            console.error('Cast error:', error);
+                        }
+                    }
+                );
+            }
+        }
+
+        function updateCastButton(isCasting) {
+            const castButton = document.getElementById('castButton');
+            const castButtonText = document.getElementById('castButtonText');
+            
+            if (isCasting) {
+                castButton.classList.add('casting');
+                castButtonText.textContent = 'Casting';
+            } else {
+                castButton.classList.remove('casting');
+                castButtonText.textContent = 'Cast';
+            }
+        }
+
+        function loadMediaToCast(channel) {
+            if (!castSession) return;
+
+            const mediaInfo = new chrome.cast.media.MediaInfo(channel.url, 'video/mp4');
+            mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+            mediaInfo.metadata.metadataType = chrome.cast.media.MetadataType.GENERIC;
+            mediaInfo.metadata.title = channel.name;
+            mediaInfo.metadata.subtitle = channel.category;
+            
+            if (channel.logo) {
+                mediaInfo.metadata.images = [new chrome.cast.Image(channel.logo)];
+            }
+
+            const request = new chrome.cast.media.LoadRequest(mediaInfo);
+            request.autoplay = true;
+
+            castSession.loadMedia(request).then(
+                () => {
+                    console.log('✅ Media loaded to cast');
+                    document.getElementById('castStatus').classList.add('active');
+                    document.getElementById('castDeviceName').textContent = `Casting to ${castSession.getSessionObj().receiver.friendlyName}`;
+                    document.getElementById('castChannelName').textContent = channel.name;
+                },
+                error => console.error('❌ Cast load error:', error)
+            );
+        }
+
         async function init() {
             await loadContent('tv');
             document.addEventListener('keydown', handleRemoteControl);
+            
+            // Check for AirPlay support (Safari only)
+            const video = document.getElementById('videoPlayer');
+            if (window.WebKitPlaybackTargetAvailabilityEvent) {
+                video.addEventListener('webkitplaybacktargetavailabilitychanged', (event) => {
+                    if (event.availability === 'available') {
+                        console.log('✅ AirPlay available');
+                        // AirPlay button appears natively in Safari
+                    }
+                });
+            }
         }
 
         // --- RECORDING FUNCTIONS ---
@@ -456,13 +679,12 @@
             const recButton = document.getElementById('recButton');
             
             try {
-                // Capture le stream vidéo + audio
                 const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
                 
                 recordedChunks = [];
                 mediaRecorder = new MediaRecorder(stream, {
                     mimeType: 'video/webm;codecs=vp9,opus',
-                    videoBitsPerSecond: 2500000 // 2.5 Mbps
+                    videoBitsPerSecond: 2500000
                 });
                 
                 mediaRecorder.ondataavailable = (event) => {
@@ -475,17 +697,16 @@
                     downloadRecording();
                 };
                 
-                mediaRecorder.start(1000); // Chunk toutes les secondes
+                mediaRecorder.start(1000);
                 recordingStartTime = Date.now();
                 recButton.classList.add('recording');
                 
-                // Mise à jour du timer
                 recordingInterval = setInterval(updateRecordingInfo, 1000);
                 updateRecordingInfo();
                 
             } catch (error) {
-                console.error('Erreur d\'enregistrement:', error);
-                alert('Erreur: impossible de démarrer l\'enregistrement. Vérifiez que la vidéo est en lecture.');
+                console.error('Recording error:', error);
+                alert('Erreur: impossible de démarrer l\'enregistrement.');
             }
         }
 
@@ -507,7 +728,6 @@
             document.getElementById('recTime').textContent = 
                 `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
             
-            // Estimation taille (environ 2.5 Mbps = 0.3125 MB/s)
             const estimatedMB = (elapsed * 0.3125).toFixed(1);
             document.getElementById('recSize').textContent = `${estimatedMB} MB`;
         }
@@ -536,15 +756,19 @@
             document.getElementById('recSize').textContent = '0 MB';
         }
 
-        // --- LOGIQUE TÉLÉCOMMANDE ---
+        // --- REMOTE CONTROL ---
         function handleRemoteControl(e) {
             const sidebar = document.getElementById('sidebar');
             const isSidebarOpen = sidebar.classList.contains('open');
 
-            // Touche R pour enregistrer
             if (e.key === 'r' || e.key === 'R') {
                 e.preventDefault();
                 toggleRecording();
+                return;
+            }
+            if (e.key === 'c' || e.key === 'C') {
+                e.preventDefault();
+                toggleCast();
                 return;
             }
 
@@ -585,7 +809,6 @@
             }
         }
 
-        // --- ZAPPING RAPIDE ---
         function zap(direction) {
             if (!currentChannel || filteredList.length === 0) return;
             const currentIndex = filteredList.findIndex(ch => ch.id === currentChannel.id);
@@ -599,7 +822,6 @@
         async function switchMode(mode) {
             if (currentMode === mode && (mode === 'tv' ? tvChannels.length : seriesList.length) > 0) return;
             
-            // Arrêter l'enregistrement si en cours
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 stopRecording();
             }
@@ -691,7 +913,6 @@
             const item = filteredList.find(ch => ch.id === id);
             if (!item) return;
             
-            // Arrêter l'enregistrement en cours
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 stopRecording();
             }
@@ -706,6 +927,12 @@
             
             applyFilters();
             loadVideo(item.url);
+            
+            // Si cast actif, envoyer au cast
+            if (castSession) {
+                loadMediaToCast(item);
+            }
+            
             if (window.innerWidth <= 768) closeSidebar();
         }
 
@@ -722,12 +949,12 @@
                 video.style.display = 'none';
                 iframe.classList.add('active');
                 iframe.src = url;
-                recButton.classList.add('disabled'); // Pas d'enregistrement pour iframe
+                recButton.classList.add('disabled');
             } else {
                 iframe.classList.remove('active');
                 iframe.src = '';
                 video.style.display = 'block';
-                recButton.classList.remove('disabled'); // Enregistrement disponible
+                recButton.classList.remove('disabled');
                 
                 const streamUrl = getProxiedUrl(url);
                 if (url.endsWith('.mpd')) {
