@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TeslaTV</title>
+    <title>TeslaTV - Recording</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
@@ -18,6 +18,7 @@
             --text-secondary: #8b93a7;
             --border: rgba(255, 255, 255, 0.08);
             --shadow: rgba(0, 0, 0, 0.4);
+            --rec-red: #ff0040;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -148,6 +149,9 @@
         }
         .channel-info h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
         .channel-category { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+        
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        
         .live-indicator {
             display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
             background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.3); border-radius: 20px;
@@ -156,26 +160,75 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .live-text { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
 
+        /* RECORDING BUTTON */
+        .rec-button {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.75rem 1.25rem; border: none; border-radius: 12px;
+            font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.3s ease;
+            background: var(--bg-tertiary); color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .rec-button:hover:not(.disabled) {
+            background: var(--rec-red);
+            border-color: var(--rec-red);
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.4);
+        }
+        .rec-button.recording {
+            background: var(--rec-red);
+            border-color: var(--rec-red);
+            animation: recordPulse 2s ease-in-out infinite;
+        }
+        .rec-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @keyframes recordPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 64, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 64, 0.9); }
+        }
+        .rec-icon {
+            width: 16px; height: 16px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+        .rec-button.recording .rec-icon {
+            border-radius: 3px;
+        }
+        .rec-info {
+            display: flex; flex-direction: column;
+            align-items: flex-end;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+        .rec-time {
+            font-weight: 700;
+            color: var(--rec-red);
+        }
+        .rec-size {
+            color: var(--text-secondary);
+        }
+
         .video-wrapper { position: relative; width: 100%; padding-bottom: 56.25%; background: #000; }
         #videoPlayer, #iframePlayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #iframePlayer { border: none; display: none; }
         #iframePlayer.active { display: block; }
         
-        /* ZAPPING OVERLAY CONTROLS - MODIFIÉ POUR NE PAS PRENDRE TOUTE LA HAUTEUR */
+        /* ZAPPING OVERLAY CONTROLS */
         .zap-controls {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 20; 
             display: flex; justify-content: space-between;
-            align-items: center; /* Centre verticalement les boutons */
+            align-items: center;
         }
         .zap-btn {
             width: 15%; 
-            height: 60%; /* Hauteur réduite à 60% pour libérer le haut et le bas */
+            height: 60%;
             pointer-events: auto; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s; 
             background: rgba(0,0,0,0.1);
-            border-radius: 16px; /* Bords un peu arrondis */
+            border-radius: 16px;
         }
         .zap-btn:hover { opacity: 1; background: linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 100%); }
         .zap-btn.next:hover { background: linear-gradient(-90deg, rgba(0,0,0,0.5) 0%, transparent 100%); }
@@ -215,7 +268,6 @@
             padding: 1rem; cursor: pointer; transition: all 0.2s ease;
             position: relative; overflow: hidden; display: flex; align-items: center; gap: 1rem;
         }
-        /* Style navigation télécommande */
         .channel-card.focused, .channel-card:hover {
             border-color: var(--accent); transform: translateX(4px);
             box-shadow: 0 4px 20px var(--shadow); background: var(--bg-secondary);
@@ -247,8 +299,9 @@
             .container { padding: 1rem; }
             h1 { font-size: 2.5rem; }
             .player-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: space-between; }
             .sidebar-filters { top: 180px; }
-            .zap-btn { opacity: 1; background: transparent; width: 20%; height: 50%; } /* Ajusté mobile */
+            .zap-btn { opacity: 1; background: transparent; width: 20%; height: 50%; }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
             .sidebar { width: 350px; left: -350px; }
@@ -312,13 +365,21 @@
                                 <div class="channel-category" id="currentCategory">-</div>
                             </div>
                         </div>
-                        <div class="live-indicator" style="display: none;" id="liveIndicator">
-                            <div class="live-dot"></div>
-                            <div class="live-text">En Direct</div>
+                        <div class="header-actions">
+                            <div class="live-indicator" style="display: none;" id="liveIndicator">
+                                <div class="live-dot"></div>
+                                <div class="live-text">En Direct</div>
+                            </div>
+                            <button class="rec-button disabled" id="recButton" onclick="toggleRecording()">
+                                <div class="rec-icon"></div>
+                                <div class="rec-info">
+                                    <span class="rec-time" id="recTime">00:00</span>
+                                    <span class="rec-size" id="recSize">0 MB</span>
+                                </div>
+                            </button>
                         </div>
                     </div>
                     <div class="video-wrapper">
-                        <!-- ZAPPING CONTROLS (OVERLAY) -->
                         <div class="zap-controls">
                             <div class="zap-btn prev" onclick="zap(-1)">
                                 <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
@@ -356,6 +417,12 @@
         let filteredList = [];
         let focusedIndex = -1;
 
+        // RECORDING VARIABLES
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingStartTime = null;
+        let recordingInterval = null;
+
         const USE_PROXY = window.location.hostname.includes('github.io');
         const CORS_PROXIES = ['https://corsproxy.io/?', 'https://api.allorigins.win/raw?url='];
         let currentProxyIndex = 0;
@@ -370,10 +437,116 @@
             document.addEventListener('keydown', handleRemoteControl);
         }
 
+        // --- RECORDING FUNCTIONS ---
+        async function toggleRecording() {
+            const recButton = document.getElementById('recButton');
+            const video = document.getElementById('videoPlayer');
+            
+            if (recButton.classList.contains('disabled')) return;
+            
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        async function startRecording() {
+            const video = document.getElementById('videoPlayer');
+            const recButton = document.getElementById('recButton');
+            
+            try {
+                // Capture le stream vidéo + audio
+                const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+                
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9,opus',
+                    videoBitsPerSecond: 2500000 // 2.5 Mbps
+                });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    downloadRecording();
+                };
+                
+                mediaRecorder.start(1000); // Chunk toutes les secondes
+                recordingStartTime = Date.now();
+                recButton.classList.add('recording');
+                
+                // Mise à jour du timer
+                recordingInterval = setInterval(updateRecordingInfo, 1000);
+                updateRecordingInfo();
+                
+            } catch (error) {
+                console.error('Erreur d\'enregistrement:', error);
+                alert('Erreur: impossible de démarrer l\'enregistrement. Vérifiez que la vidéo est en lecture.');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                clearInterval(recordingInterval);
+                document.getElementById('recButton').classList.remove('recording');
+            }
+        }
+
+        function updateRecordingInfo() {
+            if (!recordingStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            document.getElementById('recTime').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Estimation taille (environ 2.5 Mbps = 0.3125 MB/s)
+            const estimatedMB = (elapsed * 0.3125).toFixed(1);
+            document.getElementById('recSize').textContent = `${estimatedMB} MB`;
+        }
+
+        function downloadRecording() {
+            if (recordedChunks.length === 0) return;
+            
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            const channelName = currentChannel ? currentChannel.name.replace(/[^a-z0-9]/gi, '_') : 'recording';
+            const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+            a.href = url;
+            a.download = `TeslaTV_${channelName}_${timestamp}.webm`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            recordedChunks = [];
+            recordingStartTime = null;
+            
+            document.getElementById('recTime').textContent = '00:00';
+            document.getElementById('recSize').textContent = '0 MB';
+        }
+
         // --- LOGIQUE TÉLÉCOMMANDE ---
         function handleRemoteControl(e) {
             const sidebar = document.getElementById('sidebar');
             const isSidebarOpen = sidebar.classList.contains('open');
+
+            // Touche R pour enregistrer
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                toggleRecording();
+                return;
+            }
 
             if (isSidebarOpen) {
                 if (e.key === 'ArrowDown') {
@@ -425,6 +598,12 @@
 
         async function switchMode(mode) {
             if (currentMode === mode && (mode === 'tv' ? tvChannels.length : seriesList.length) > 0) return;
+            
+            // Arrêter l'enregistrement si en cours
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                stopRecording();
+            }
+            
             currentMode = mode;
             activeCategory = 'Toutes';
             focusedIndex = -1;
@@ -512,6 +691,11 @@
             const item = filteredList.find(ch => ch.id === id);
             if (!item) return;
             
+            // Arrêter l'enregistrement en cours
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                stopRecording();
+            }
+            
             currentChannel = item;
             document.getElementById('currentChannel').textContent = item.name;
             document.getElementById('currentCategory').textContent = item.category;
@@ -528,6 +712,7 @@
         function loadVideo(url) {
             const video = document.getElementById('videoPlayer');
             const iframe = document.getElementById('iframePlayer');
+            const recButton = document.getElementById('recButton');
             
             if (currentPlayer && currentPlayer.destroy) { currentPlayer.destroy(); currentPlayer = null; }
             
@@ -537,10 +722,13 @@
                 video.style.display = 'none';
                 iframe.classList.add('active');
                 iframe.src = url;
+                recButton.classList.add('disabled'); // Pas d'enregistrement pour iframe
             } else {
                 iframe.classList.remove('active');
                 iframe.src = '';
                 video.style.display = 'block';
+                recButton.classList.remove('disabled'); // Enregistrement disponible
+                
                 const streamUrl = getProxiedUrl(url);
                 if (url.endsWith('.mpd')) {
                     if (typeof dashjs !== 'undefined') {
