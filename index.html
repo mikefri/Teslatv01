@@ -74,8 +74,7 @@
             margin-bottom: 0.5rem;
             background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-            /* Curseur pour indiquer que c'est cliquable pour l'easter egg */
-            cursor: pointer; user-select: none;
+            cursor: pointer; user-select: none; /* Cliquable pour le secret */
         }
         .sidebar-subtitle { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
 
@@ -575,7 +574,7 @@
                 case cast.framework.SessionState.SESSION_RESUMED:
                     castSession = castContext.getCurrentSession();
                     updateCastButton(true);
-                    if (currentChannel) {
+                    if (currentChannel && !currentChannel.url.includes('mega.nz')) {
                         loadMediaToCast(currentChannel);
                     }
                     break;
@@ -801,7 +800,6 @@
         }
 
         async function switchMode(mode) {
-            // Check based on mode
             let listLength = 0;
             if (mode === 'tv') listLength = tvChannels.length;
             else if (mode === 'series') listLength = seriesList.length;
@@ -818,7 +816,6 @@
             focusedIndex = -1;
             
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            // Use specific selector to target buttons even if hidden
             document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`).classList.add('active');
             
             document.getElementById('channelsGrid').innerHTML = '<div class="loading-text">Chargement...</div>';
@@ -831,7 +828,6 @@
             let url;
             let data;
             
-            // Map mode to URL and Variable
             if (mode === 'tv') { url = TV_URL; data = tvChannels; }
             else if (mode === 'series') { url = SERIES_URL; data = seriesList; }
             else { url = XXX_URL; data = xxxList; }
@@ -933,7 +929,9 @@
             applyFilters();
             loadVideo(item.url);
             
-            if (castSession) loadMediaToCast(item);
+            // On ne lance le cast auto que si ce n'est PAS un lien Mega
+            if (castSession && !item.url.includes('mega.nz')) loadMediaToCast(item);
+            
             if (window.innerWidth <= 768) closeSidebar();
         }
 
@@ -941,9 +939,27 @@
             const video = document.getElementById('videoPlayer');
             const iframe = document.getElementById('iframePlayer');
             const recButton = document.getElementById('recButton');
+            const castButton = document.getElementById('castButton');
             
+            // Nettoyage de l'ancien lecteur
             if (currentPlayer && currentPlayer.destroy) { currentPlayer.destroy(); currentPlayer = null; }
             
+            // --- 1. GESTION MEGA.NZ ---
+            if (url.includes('mega.nz')) {
+                // Conversion automatique: /file/ -> /embed/
+                const embedUrl = url.replace('/file/', '/embed/');
+                
+                video.style.display = 'none';
+                iframe.classList.add('active');
+                iframe.src = embedUrl;
+                
+                // Désactivation forcée des fonctions incompatibles avec l'iframe Mega
+                recButton.classList.add('disabled');
+                castButton.classList.add('disabled');
+                return;
+            }
+
+            // --- 2. GESTION AUTRES IFRAMES (Web players) ---
             const isWebPlayer = url.includes('rereyano.ru') || (!url.endsWith('.mpd') && !url.endsWith('.m3u8') && url.includes('/player/'));
             
             if (isWebPlayer) {
@@ -951,11 +967,16 @@
                 iframe.classList.add('active');
                 iframe.src = url;
                 recButton.classList.add('disabled');
+                // Cast potentiellement possible si le site le supporte, mais souvent non
             } else {
+                // --- 3. GESTION FLUX DIRECTS (HLS/DASH/MP4) ---
                 iframe.classList.remove('active');
                 iframe.src = '';
                 video.style.display = 'block';
+                
+                // Réactivation des boutons
                 recButton.classList.remove('disabled');
+                castButton.classList.remove('disabled');
                 
                 const streamUrl = getProxiedUrl(url);
                 if (url.endsWith('.mpd')) {
@@ -1011,7 +1032,7 @@
         function unlockSecretMode() {
             secretClickCount++;
             
-            // Reset du compteur si l'utilisateur arrête de cliquer pendant 2 secondes
+            // Reset du compteur si inactif 2 secondes
             clearTimeout(secretTimeout);
             secretTimeout = setTimeout(() => {
                 secretClickCount = 0;
@@ -1028,7 +1049,7 @@
                 } else {
                     btn.style.display = 'none';
                     if (currentMode === 'xxx') {
-                        switchMode('tv'); // Retour en mode TV si on était sur XXX
+                        switchMode('tv'); // Retour en sécurité
                     }
                     alert('🔒 Mode Adulte Verrouillé');
                 }
