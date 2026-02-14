@@ -74,6 +74,8 @@
             margin-bottom: 0.5rem;
             background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            /* Curseur pour indiquer que c'est cliquable pour l'easter egg */
+            cursor: pointer; user-select: none;
         }
         .sidebar-subtitle { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
 
@@ -81,12 +83,14 @@
         .mode-switcher {
             display: flex; background: var(--bg-primary); padding: 4px;
             border-radius: 12px; margin-top: 1.5rem; border: 1px solid var(--border);
+            flex-wrap: wrap; gap: 2px;
         }
         .mode-btn {
             flex: 1; padding: 10px; border: none; background: transparent;
             color: var(--text-secondary); cursor: pointer; border-radius: 8px;
             font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
         .mode-btn:hover { color: var(--text-primary); }
         .mode-btn.active {
@@ -97,7 +101,7 @@
         .sidebar-filters {
             padding: 1.5rem; background: var(--bg-primary);
             border-bottom: 1px solid var(--border);
-            position: sticky; top: 165px; z-index: 9;
+            position: sticky; top: 180px; z-index: 9;
         }
 
         .sidebar-content { padding: 1rem; flex: 1; }
@@ -370,7 +374,7 @@
             h1 { font-size: 2.5rem; }
             .player-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
             .header-actions { width: 100%; justify-content: space-between; }
-            .sidebar-filters { top: 180px; }
+            .sidebar-filters { top: 195px; } /* Ajusté pour 3 boutons */
             .zap-btn { opacity: 1; background: transparent; width: 20%; height: 50%; }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -395,12 +399,15 @@
 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-title">TeslaTV</div>
+            <!-- TITRE CLIQUABLE POUR LE SECRET -->
+            <div class="sidebar-title" onclick="unlockSecretMode()">TeslaTV</div>
             <div class="sidebar-subtitle">Chargement...</div>
             
             <div class="mode-switcher">
                 <button class="mode-btn active" onclick="switchMode('tv')">Chaînes TV</button>
                 <button class="mode-btn" onclick="switchMode('series')">Séries</button>
+                <!-- BOUTON CACHÉ PAR DÉFAUT -->
+                <button id="xxxBtn" class="mode-btn" onclick="switchMode('xxx')" style="display: none; color: #ff0040;">XXX (+18)</button>
             </div>
         </div>
 
@@ -493,9 +500,12 @@
         // CONFIGURATION
         const TV_URL = 'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json';
         const SERIES_URL = 'https://gist.githubusercontent.com/mikefri/d914d7a8684d5f4900890bc41d9c223c/raw/series.json'; 
+        const XXX_URL = 'https://gist.githubusercontent.com/mikefri/c4ea8003ac647eeafd14c35db59431ea/raw/3e53c48a0f2ee947439cea20bfa278dc7c7464e0/xx.json';
 
         let tvChannels = [];
         let seriesList = [];
+        let xxxList = [];
+        
         let currentMode = 'tv'; 
         let currentChannel = null;
         let currentPlayer = null;
@@ -542,7 +552,6 @@
                 remotePlayer = new cast.framework.RemotePlayer();
                 remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
 
-                // Event listeners
                 castContext.addEventListener(
                     cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
                     onCastSessionChanged
@@ -589,16 +598,12 @@
             if (castButton.classList.contains('disabled')) return;
 
             if (castSession) {
-                // Disconnect
                 castContext.endCurrentSession(true);
             } else {
-                // Request cast
                 castContext.requestSession().then(
                     () => console.log('Cast session started'),
                     error => {
-                        if (error !== 'cancel') {
-                            console.error('Cast error:', error);
-                        }
+                        if (error !== 'cancel') console.error('Cast error:', error);
                     }
                 );
             }
@@ -648,14 +653,10 @@
             await loadContent('tv');
             document.addEventListener('keydown', handleRemoteControl);
             
-            // Check for AirPlay support (Safari only)
             const video = document.getElementById('videoPlayer');
             if (window.WebKitPlaybackTargetAvailabilityEvent) {
                 video.addEventListener('webkitplaybacktargetavailabilitychanged', (event) => {
-                    if (event.availability === 'available') {
-                        console.log('✅ AirPlay available');
-                        // AirPlay button appears natively in Safari
-                    }
+                    if (event.availability === 'available') console.log('✅ AirPlay available');
                 });
             }
         }
@@ -663,8 +664,6 @@
         // --- RECORDING FUNCTIONS ---
         async function toggleRecording() {
             const recButton = document.getElementById('recButton');
-            const video = document.getElementById('videoPlayer');
-            
             if (recButton.classList.contains('disabled')) return;
             
             if (!mediaRecorder || mediaRecorder.state === 'inactive') {
@@ -680,7 +679,6 @@
             
             try {
                 const stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
-                
                 recordedChunks = [];
                 mediaRecorder = new MediaRecorder(stream, {
                     mimeType: 'video/webm;codecs=vp9,opus',
@@ -688,14 +686,10 @@
                 });
                 
                 mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
+                    if (event.data.size > 0) recordedChunks.push(event.data);
                 };
                 
-                mediaRecorder.onstop = () => {
-                    downloadRecording();
-                };
+                mediaRecorder.onstop = () => downloadRecording();
                 
                 mediaRecorder.start(1000);
                 recordingStartTime = Date.now();
@@ -703,7 +697,6 @@
                 
                 recordingInterval = setInterval(updateRecordingInfo, 1000);
                 updateRecordingInfo();
-                
             } catch (error) {
                 console.error('Recording error:', error);
                 alert('Erreur: impossible de démarrer l\'enregistrement.');
@@ -761,16 +754,8 @@
             const sidebar = document.getElementById('sidebar');
             const isSidebarOpen = sidebar.classList.contains('open');
 
-            if (e.key === 'r' || e.key === 'R') {
-                e.preventDefault();
-                toggleRecording();
-                return;
-            }
-            if (e.key === 'c' || e.key === 'C') {
-                e.preventDefault();
-                toggleCast();
-                return;
-            }
+            if (e.key === 'r' || e.key === 'R') { e.preventDefault(); toggleRecording(); return; }
+            if (e.key === 'c' || e.key === 'C') { e.preventDefault(); toggleCast(); return; }
 
             if (isSidebarOpen) {
                 if (e.key === 'ArrowDown') {
@@ -790,13 +775,9 @@
                     closeSidebar();
                 }
             } else {
-                if (e.key === 'ArrowRight') {
-                    zap(1);
-                } else if (e.key === 'ArrowLeft') {
-                    zap(-1);
-                } else if (e.key === 'Enter' || e.key === 'ArrowUp') {
-                    toggleSidebar();
-                }
+                if (e.key === 'ArrowRight') zap(1);
+                else if (e.key === 'ArrowLeft') zap(-1);
+                else if (e.key === 'Enter' || e.key === 'ArrowUp') toggleSidebar();
             }
         }
 
@@ -820,7 +801,13 @@
         }
 
         async function switchMode(mode) {
-            if (currentMode === mode && (mode === 'tv' ? tvChannels.length : seriesList.length) > 0) return;
+            // Check based on mode
+            let listLength = 0;
+            if (mode === 'tv') listLength = tvChannels.length;
+            else if (mode === 'series') listLength = seriesList.length;
+            else if (mode === 'xxx') listLength = xxxList.length;
+
+            if (currentMode === mode && listLength > 0) return;
             
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 stopRecording();
@@ -831,6 +818,7 @@
             focusedIndex = -1;
             
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            // Use specific selector to target buttons even if hidden
             document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`).classList.add('active');
             
             document.getElementById('channelsGrid').innerHTML = '<div class="loading-text">Chargement...</div>';
@@ -840,15 +828,23 @@
         }
 
         async function loadContent(mode) {
-            const url = mode === 'tv' ? TV_URL : SERIES_URL;
-            let data = mode === 'tv' ? tvChannels : seriesList;
+            let url;
+            let data;
+            
+            // Map mode to URL and Variable
+            if (mode === 'tv') { url = TV_URL; data = tvChannels; }
+            else if (mode === 'series') { url = SERIES_URL; data = seriesList; }
+            else { url = XXX_URL; data = xxxList; }
             
             try {
                 if (data.length === 0) {
                     const response = await fetch(url + '?t=' + new Date().getTime());
                     if (!response.ok) throw new Error('Erreur réseau');
                     data = await response.json();
-                    if (mode === 'tv') tvChannels = data; else seriesList = data;
+                    
+                    if (mode === 'tv') tvChannels = data;
+                    else if (mode === 'series') seriesList = data;
+                    else xxxList = data;
                 }
                 updateUI(data);
             } catch (error) {
@@ -859,7 +855,12 @@
         }
 
         function updateUI(data) {
-            document.querySelector('.sidebar-subtitle').textContent = `${data.length} ${currentMode === 'tv' ? 'chaînes' : 'séries'}`;
+            let typeLabel = 'contenus';
+            if (currentMode === 'tv') typeLabel = 'chaînes';
+            else if (currentMode === 'series') typeLabel = 'séries';
+            else typeLabel = 'vidéos';
+
+            document.querySelector('.sidebar-subtitle').textContent = `${data.length} ${typeLabel}`;
             const categories = ['Toutes', ...new Set(data.map(ch => ch.category))];
             const filterContainer = document.getElementById('categoryFilters');
             filterContainer.innerHTML = categories.map(cat => `
@@ -881,7 +882,11 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('channelsGrid');
             const noResults = document.getElementById('noResults');
-            const currentData = currentMode === 'tv' ? tvChannels : seriesList;
+            
+            let currentData;
+            if (currentMode === 'tv') currentData = tvChannels;
+            else if (currentMode === 'series') currentData = seriesList;
+            else currentData = xxxList;
 
             filteredList = currentData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(searchTerm);
@@ -922,17 +927,13 @@
             document.getElementById('currentCategory').textContent = item.category;
             const logoEl = document.getElementById('currentLogo');
             logoEl.src = item.logo || 'https://i.imgur.com/QxHt9NC.png';
-            document.getElementById('liveIndicator').style.display = currentMode === 'series' ? 'none' : 'flex';
+            document.getElementById('liveIndicator').style.display = currentMode === 'tv' ? 'flex' : 'none';
             document.getElementById('videoOverlay').classList.add('hidden');
             
             applyFilters();
             loadVideo(item.url);
             
-            // Si cast actif, envoyer au cast
-            if (castSession) {
-                loadMediaToCast(item);
-            }
-            
+            if (castSession) loadMediaToCast(item);
             if (window.innerWidth <= 768) closeSidebar();
         }
 
@@ -987,6 +988,7 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', applyFilters);
+        
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             if (!sidebar.classList.contains('open')) { focusedIndex = 0; updateFocus(); }
@@ -1000,6 +1002,38 @@
             document.getElementById('sidebarToggle').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('active');
             document.getElementById('mainContent').classList.remove('shifted');
+        }
+
+        // --- LOGIQUE DU MODE SECRET ---
+        let secretClickCount = 0;
+        let secretTimeout;
+
+        function unlockSecretMode() {
+            secretClickCount++;
+            
+            // Reset du compteur si l'utilisateur arrête de cliquer pendant 2 secondes
+            clearTimeout(secretTimeout);
+            secretTimeout = setTimeout(() => {
+                secretClickCount = 0;
+            }, 2000);
+
+            // Au 5ème clic
+            if (secretClickCount >= 5) {
+                const btn = document.getElementById('xxxBtn');
+                const isHidden = btn.style.display === 'none';
+                
+                if (isHidden) {
+                    btn.style.display = 'block';
+                    alert('🔞 Mode Adulte Déverrouillé');
+                } else {
+                    btn.style.display = 'none';
+                    if (currentMode === 'xxx') {
+                        switchMode('tv'); // Retour en mode TV si on était sur XXX
+                    }
+                    alert('🔒 Mode Adulte Verrouillé');
+                }
+                secretClickCount = 0;
+            }
         }
 
         window.addEventListener('DOMContentLoaded', init);
