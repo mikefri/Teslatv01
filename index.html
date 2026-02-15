@@ -119,16 +119,16 @@
 
         /* BOUTONS DE ZAPPING (Sur la vidéo) */
         .zap-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 85%; /* Laisse la place pour la barre de lecture native en bas */
-            pointer-events: none; display: flex; justify-content: space-between; z-index: 10;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; justify-content: space-between; align-items: center; z-index: 10;
         }
         .zap-zone {
-            width: 15%; height: 100%; pointer-events: auto; cursor: pointer;
+            width: 15%; height: 60%; pointer-events: auto; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.3s; border-radius: 12px;
         }
         .zap-zone:hover { opacity: 1; background: linear-gradient(90deg, rgba(0,0,0,0.6) 0%, transparent 100%); }
-        .zap-zone.next { background: linear-gradient(-90deg, rgba(0,0,0,0.6) 0%, transparent 100%); }
+        .zap-zone.next:hover { background: linear-gradient(-90deg, rgba(0,0,0,0.6) 0%, transparent 100%); }
         .zap-zone svg { width: 50px; height: 50px; fill: white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
 
         /* Loader & Overlay */
