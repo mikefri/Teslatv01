@@ -16,28 +16,23 @@ export default async function handler(req, res) {
         });
 
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
+        const finalUrl = response.url || url;
+        const base = finalUrl.substring(0, finalUrl.lastIndexOf('/') + 1);
 
+        // ── MPD DASH ──────────────────────────────────────────────
         if (url.endsWith('.mpd') || contentType.includes('dash+xml')) {
             let text = await response.text();
 
-            // URL réelle après redirects (avec le token CDN)
-            const finalUrl = response.url || url;
-            const base = finalUrl.substring(0, finalUrl.lastIndexOf('/') + 1);
-
-            // 1. Corriger les <BaseURL> relatives existantes
+            // Corriger les <BaseURL> relatives
             text = text.replace(/<BaseURL>([^<]+)<\/BaseURL>/g, (_, href) => {
                 if (href.startsWith('http')) return `<BaseURL>${href}</BaseURL>`;
                 try { return `<BaseURL>${new URL(href, base).href}</BaseURL>`; }
                 catch { return `<BaseURL>${href}</BaseURL>`; }
             });
 
-            // 2. Si aucun <BaseURL> dans le MPD, en injecter un après <Period ...>
-            // pour que dash.js sache où chercher les segments
+            // Injecter <BaseURL> si absent
             if (!text.includes('<BaseURL>')) {
-                text = text.replace(
-                    /(<Period[^>]*>)/,
-                    `$1\n    <BaseURL>${base}</BaseURL>`
-                );
+                text = text.replace(/(<Period[^>]*>)/, `$1\n    <BaseURL>${base}</BaseURL>`);
             }
 
             res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,7 +41,31 @@ export default async function handler(req, res) {
             return res.status(200).send(text);
         }
 
-        // Tout le reste : passage transparent
+        // ── HLS m3u8 ──────────────────────────────────────────────
+        if (url.includes('.m3u8') || contentType.includes('mpegurl')) {
+            let text = await response.text();
+
+            const lines = text.split('\n').map(line => {
+                const t = line.trim();
+                if (!t || t.startsWith('#')) {
+                    // Réécrire URI= dans les tags (#EXT-X-KEY, #EXT-X-MAP...)
+                    return line.replace(/URI="([^"]+)"/g, (_, href) => {
+                        const abs = href.startsWith('http') ? href : new URL(href, base).href;
+                        return `URI="/api/proxy?url=${encodeURIComponent(abs)}"`;
+                    });
+                }
+                // Ligne segment ou sous-playlist
+                const abs = t.startsWith('http') ? t : new URL(t, base).href;
+                return `/api/proxy?url=${encodeURIComponent(abs)}`;
+            });
+
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+            res.setHeader('Cache-Control', 'no-cache');
+            return res.status(200).send(lines.join('\n'));
+        }
+
+        // ── Segments vidéo/audio et tout le reste ─────────────────
         const body = await response.arrayBuffer();
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Content-Type', contentType);
