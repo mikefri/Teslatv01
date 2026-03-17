@@ -200,10 +200,11 @@ const grid    = $('grid');
 const search  = $('searchInput');
 const sidebar = $('sidebar');
 
-// ── PROXY : uniquement pour les .mpd ──────────────────────────────
+// ── PROXY : .mpd ET .m3u8 netplus.ch ─────────────────────────────
 function urlFor(url) {
-    if (url.endsWith('.mpd')) return '/api/proxy?url=' + encodeURIComponent(url);
-    return url; // HLS et embeds : direct
+    if (url.endsWith('.mpd') || (url.includes('.m3u8') && url.includes('netplus.ch')))
+        return '/api/proxy?url=' + encodeURIComponent(url);
+    return url; // autres HLS et embeds : direct
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
@@ -318,11 +319,11 @@ function play(id) {
         dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => loader.classList.remove('active'));
         dash.on(dashjs.MediaPlayer.events.ERROR, () => loader.classList.remove('active'));
     } else {
-        // ── HLS direct (m3u8) ──
+        // ── HLS (via proxy si netplus.ch) ──
         video.style.display = 'block';
         if (Hls.isSupported()) {
             hls = new Hls();
-            hls.loadSource(url);
+            hls.loadSource(urlFor(url));
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
         } else {
