@@ -14,7 +14,6 @@
             --bg-secondary: #151b2b;
             --bg-tertiary: #1e2738;
             --accent: #00d9ff;
-            --accent-glow: rgba(0, 217, 255, 0.3);
             --text-primary: #ffffff;
             --text-secondary: #8b93a7;
             --border: rgba(255, 255, 255, 0.1);
@@ -33,12 +32,13 @@
             height: 100vh;
         }
 
-        /* --- SIDEBAR --- */
+        /* SIDEBAR TOGGLE */
         .sidebar-toggle {
             position: fixed; left: 0; top: 50%; transform: translateY(-50%);
             width: 50px; height: 120px;
             background: var(--bg-tertiary); border: 1px solid var(--border);
-            border-left: none; border-radius: 0 16px 16px 0; cursor: pointer; z-index: 1001;
+            border-left: none; border-radius: 0 16px 16px 0;
+            cursor: pointer; z-index: 1001;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.3s ease; box-shadow: 4px 0 20px rgba(0,0,0,0.5);
         }
@@ -46,10 +46,12 @@
         .sidebar-toggle.open { left: 400px; }
         .sidebar-toggle svg { width: 24px; fill: currentColor; }
 
+        /* SIDEBAR */
         .sidebar {
             position: fixed; left: -400px; top: 0; width: 400px; height: 100vh;
             background: var(--bg-secondary); border-right: 1px solid var(--border);
-            z-index: 1000; transition: left 0.3s ease; display: flex; flex-direction: column;
+            z-index: 1000; transition: left 0.3s ease;
+            display: flex; flex-direction: column;
         }
         .sidebar.open { left: 0; }
 
@@ -58,7 +60,8 @@
             border-bottom: 1px solid var(--border);
         }
         .sidebar-title {
-            font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; cursor: pointer;
+            font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+            cursor: pointer;
             background: linear-gradient(90deg, #fff, var(--accent));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
@@ -66,23 +69,24 @@
         .mode-switcher { display: flex; gap: 5px; margin-top: 1rem; }
         .mode-btn {
             flex: 1; padding: 10px; background: rgba(255,255,255,0.05);
-            border: none; color: var(--text-secondary); border-radius: 8px;
-            cursor: pointer; font-weight: 600; transition: 0.2s;
+            border: none; color: var(--text-secondary);
+            border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s;
         }
         .mode-btn.active { background: var(--accent); color: #000; }
 
         .search-container { padding: 1rem; }
         .search-box {
-            width: 100%; padding: 12px; background: var(--bg-primary);
-            border: 1px solid var(--border); border-radius: 12px;
-            color: white; font-size: 1rem;
+            width: 100%; padding: 12px;
+            background: var(--bg-primary); border: 1px solid var(--border);
+            border-radius: 12px; color: white; font-size: 1rem;
         }
 
-        .channels-grid { flex: 1; overflow-y: auto; padding: 0 1rem 1rem 1rem; }
+        .channels-grid { flex: 1; overflow-y: auto; padding: 0 1rem 1rem; }
         .channel-card {
             display: flex; align-items: center; gap: 1rem; padding: 12px;
             background: var(--bg-primary); border: 1px solid var(--border);
-            border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+            border-radius: 12px; margin-bottom: 8px;
+            cursor: pointer; transition: all 0.2s;
         }
         .channel-card:hover, .channel-card.focused {
             transform: translateX(5px); border-color: var(--accent); background: var(--bg-tertiary);
@@ -94,25 +98,27 @@
         .channel-logo {
             width: 40px; height: 40px; object-fit: contain;
             background: rgba(255,255,255,0.1); border-radius: 8px; padding: 4px;
+            flex-shrink: 0;
         }
 
-        /* --- MAIN --- */
+        /* MAIN */
         .main-content {
-            transition: margin-left 0.3s; height: 100vh; padding: 2rem;
-            display: flex; flex-direction: column;
+            transition: margin-left 0.3s; height: 100vh;
+            padding: 2rem; display: flex; flex-direction: column;
         }
         .main-content.shifted { margin-left: 400px; }
 
         .container {
-            max-width: 1600px; margin: 0 auto; width: 100%; height: 100%;
-            display: flex; flex-direction: column;
+            max-width: 1600px; margin: 0 auto;
+            width: 100%; height: 100%; display: flex; flex-direction: column;
         }
 
         .player-frame {
             background: var(--bg-secondary); border-radius: 24px;
             border: 1px solid var(--border);
             box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(255,255,255,0.05);
-            display: flex; flex-direction: column; overflow: hidden; flex: 1; position: relative;
+            display: flex; flex-direction: column;
+            overflow: hidden; flex: 1; position: relative;
         }
 
         .player-header {
@@ -120,13 +126,15 @@
             background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
             border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
         }
         .header-info { display: flex; align-items: center; gap: 1rem; }
         .header-controls { display: flex; gap: 0.5rem; }
 
         .ctrl-btn {
-            width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
-            background: var(--bg-primary); color: var(--text-secondary); cursor: pointer;
+            width: 40px; height: 40px; border-radius: 10px;
+            border: 1px solid var(--border); background: var(--bg-primary);
+            color: var(--text-secondary); cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
         .ctrl-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
@@ -137,59 +145,60 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        #videoPlayer, #iframePlayer { width: 100%; height: 100%; }
-        #iframePlayer { display: none; border: none; }
+        #videoPlayer { width: 100%; height: 100%; display: block; }
+        #iframePlayer { width: 100%; height: 100%; border: none; display: none; }
 
         /* Zapping */
         .zap-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; justify-content: space-between;
-            align-items: center; z-index: 10;
+            pointer-events: none;
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
         }
         .zap-zone {
             width: 15%; height: 60%; pointer-events: auto; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s; border-radius: 12px;
         }
-        .zap-zone:hover { opacity: 1; background: linear-gradient(90deg, rgba(0,0,0,0.6) 0%, transparent 100%); }
-        .zap-zone.next:hover { background: linear-gradient(-90deg, rgba(0,0,0,0.6) 0%, transparent 100%); }
+        .zap-zone:hover { opacity: 1; background: linear-gradient(90deg, rgba(0,0,0,0.6), transparent); }
+        .zap-zone.next:hover { background: linear-gradient(-90deg, rgba(0,0,0,0.6), transparent); }
         .zap-zone svg { width: 50px; height: 50px; fill: white; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
 
         /* Loader */
         .loader {
             position: absolute; inset: 0; background: rgba(0,0,0,0.8);
-            display: flex; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; gap: 1rem;
+            justify-content: center; align-items: center;
             z-index: 5; opacity: 0; pointer-events: none; transition: 0.3s;
         }
         .loader.active { opacity: 1; }
         .spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent); border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
         }
+        .loader-text { font-size: 0.85rem; color: var(--text-secondary); }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Toast notification */
+        /* Toast */
         .toast {
             position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
             background: var(--bg-tertiary); border: 1px solid var(--border);
-            border-radius: 12px; padding: 1rem 1.5rem;
-            color: var(--text-primary); font-size: 0.9rem;
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.3s ease; pointer-events: none;
+            border-radius: 12px; padding: 0.8rem 1.2rem;
+            font-size: 0.9rem; pointer-events: none;
+            transform: translateY(20px); opacity: 0;
+            transition: all 0.3s ease;
         }
         .toast.show { transform: translateY(0); opacity: 1; }
 
-        /* Proxy status badge */
-        .proxy-badge {
-            position: absolute; top: 8px; right: 8px; z-index: 20;
+        /* Badge mode */
+        .mode-badge {
+            position: absolute; top: 8px; left: 8px; z-index: 20;
             font-size: 0.65rem; padding: 3px 8px; border-radius: 20px;
-            background: rgba(0,0,0,0.7); border: 1px solid var(--border);
-            color: var(--text-secondary); display: none;
+            background: rgba(0,0,0,0.7); border: 1px solid var(--accent);
+            color: var(--accent); display: none;
         }
-        .proxy-badge.visible { display: block; }
-        .proxy-badge.on { border-color: var(--accent); color: var(--accent); }
-        .proxy-badge.off { border-color: #ff4040; color: #ff4040; }
+        .mode-badge.show { display: block; }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
@@ -203,461 +212,449 @@
 </head>
 <body>
 
-    <div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
-    <!-- BOUTON MENU -->
-    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-    </button>
+<!-- BOUTON MENU -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+</button>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title" onclick="unlockSecret()">TeslaTV</div>
-            <div class="mode-switcher">
-                <button class="mode-btn active" onclick="switchMode('tv')">TV</button>
-                <button class="mode-btn" onclick="switchMode('series')">Séries</button>
-                <button id="xxxBtn" class="mode-btn" style="display:none; color:#ff0040;" onclick="switchMode('xxx')">18+</button>
-            </div>
-        </div>
-        <div class="search-container">
-            <input type="text" class="search-box" id="searchInput" placeholder="Rechercher une chaîne...">
-        </div>
-        <div class="channels-grid" id="grid"></div>
-    </div>
-
-    <!-- CONTENU PRINCIPAL -->
-    <div class="main-content" id="mainContent">
-        <div class="container">
-            <div class="player-frame" id="playerContainer">
-
-                <div class="player-header">
-                    <div class="header-info">
-                        <img src="" id="currentLogo" style="height:30px; display:none;">
-                        <div>
-                            <h2 id="currentTitle" style="font-size:1.2rem; margin:0;">Bienvenue</h2>
-                            <p id="currentCat" style="font-size:0.8rem; color:var(--text-secondary); margin:0;">Sélectionnez un contenu</p>
-                        </div>
-                    </div>
-                    <div class="header-controls">
-                        <button class="ctrl-btn" onclick="toggleFav()" title="Favoris">
-                            <svg id="favIcon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </button>
-                        <button class="ctrl-btn" onclick="togglePiP()" title="Picture in Picture">
-                            <svg viewBox="0 0 24 24"><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z"/></svg>
-                        </button>
-                        <button class="ctrl-btn" onclick="toggleFullscreen()" title="Plein Écran">
-                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                        </button>
-                        <button class="ctrl-btn" onclick="toggleCast()" title="Caster">
-                            <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="video-wrapper">
-                    <div class="proxy-badge" id="proxyBadge">PROXY</div>
-
-                    <div class="zap-overlay">
-                        <div class="zap-zone prev" onclick="zap(-1)">
-                            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-                        </div>
-                        <div class="zap-zone next" onclick="zap(1)">
-                            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-                        </div>
-                    </div>
-
-                    <div class="loader" id="loader"><div class="spinner"></div></div>
-
-                    <video id="videoPlayer" controls autoplay playsinline crossorigin="anonymous"></video>
-                    <iframe id="iframePlayer" allowfullscreen allow="autoplay"></iframe>
-                </div>
-
-            </div>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-title" onclick="unlockSecret()">TeslaTV</div>
+        <div class="mode-switcher">
+            <button class="mode-btn active" onclick="switchMode('tv')">TV</button>
+            <button class="mode-btn" onclick="switchMode('series')">Séries</button>
+            <button id="xxxBtn" class="mode-btn" style="display:none; color:#ff0040;" onclick="switchMode('xxx')">18+</button>
         </div>
     </div>
+    <div class="search-container">
+        <input type="text" class="search-box" id="searchInput" placeholder="Rechercher une chaîne...">
+    </div>
+    <div class="channels-grid" id="grid"></div>
+</div>
 
-    <script>
-        // ============================
-        // CONFIG
-        // ============================
-        const URLS = {
-            tv:     'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json',
-            series: 'https://gist.githubusercontent.com/mikefri/fc75ba4ad4eb3d8da1a3d1f6dc9c83f2/raw/series.json',
-            xxx:    'https://gist.githubusercontent.com/mikefri/c4ea8003ac647eeafd14c35db59431ea/raw/xx.json'
-        };
+<!-- MAIN -->
+<div class="main-content" id="mainContent">
+    <div class="container">
+        <div class="player-frame" id="playerContainer">
 
-        // URL du proxy Vercel - s'adapte automatiquement
-        const PROXY_BASE = '/api/proxy?url=';
-
-        // ============================
-        // ÉTAT
-        // ============================
-        let state = {
-            mode: localStorage.getItem('mode') || 'tv',
-            list: [],
-            current: null,
-            favs: JSON.parse(localStorage.getItem('favs')) || [],
-            focusIdx: -1,
-            usingProxy: false
-        };
-        let hlsPlayer = null;
-        let dashPlayer = null;
-
-        // ============================
-        // ÉLÉMENTS
-        // ============================
-        const ui = {
-            sidebar:    document.getElementById('sidebar'),
-            grid:       document.getElementById('grid'),
-            video:      document.getElementById('videoPlayer'),
-            iframe:     document.getElementById('iframePlayer'),
-            loader:     document.getElementById('loader'),
-            container:  document.getElementById('playerContainer'),
-            search:     document.getElementById('searchInput'),
-            toast:      document.getElementById('toast'),
-            proxyBadge: document.getElementById('proxyBadge')
-        };
-
-        // ============================
-        // PROXY HELPER
-        // ============================
-        function proxyUrl(url) {
-            return PROXY_BASE + encodeURIComponent(url);
-        }
-
-        // Teste si le proxy est disponible sur ce déploiement
-        async function checkProxyAvailable() {
-            try {
-                const res = await fetch('/api/proxy?url=' + encodeURIComponent('https://example.com'), { method: 'GET' });
-                return res.ok || res.status === 200;
-            } catch {
-                return false;
-            }
-        }
-
-        // ============================
-        // TOAST
-        // ============================
-        function showToast(msg, duration = 2500) {
-            ui.toast.textContent = msg;
-            ui.toast.classList.add('show');
-            setTimeout(() => ui.toast.classList.remove('show'), duration);
-        }
-
-        // ============================
-        // INIT
-        // ============================
-        async function init() {
-            switchMode(state.mode);
-            ui.search.addEventListener('input', render);
-            document.addEventListener('keydown', handleKeys);
-            ui.video.addEventListener('waiting', () => ui.loader.classList.add('active'));
-            ui.video.addEventListener('playing', () => ui.loader.classList.remove('active'));
-            ui.video.addEventListener('error', handleVideoError);
-            if(window.innerWidth > 1000) toggleSidebar();
-        }
-
-        // ============================
-        // GESTION ERREUR VIDÉO
-        // ============================
-        async function handleVideoError() {
-            if (!state.current) return;
-            const url = state.current.url;
-
-            // Si on n'utilise pas encore le proxy, on bascule dessus
-            if (!state.usingProxy && url.match(/\.(m3u8|mpd|mp4)$/)) {
-                console.log('[TeslaTV] Erreur directe, tentative via proxy...');
-                state.usingProxy = true;
-                loadVideoUrl(url, true);
-            }
-        }
-
-        // ============================
-        // CLAVIER / TÉLÉCOMMANDE
-        // ============================
-        function handleKeys(e) {
-            const isMenuOpen = ui.sidebar.classList.contains('open');
-            if(e.key === 'm' || e.key === 'M') toggleSidebar();
-            if(e.key === 'f' || e.key === 'F') toggleFullscreen();
-
-            if (isMenuOpen) {
-                const cards = document.querySelectorAll('.channel-card');
-                if(e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    state.focusIdx = Math.min(state.focusIdx + 1, cards.length - 1);
-                    focusCard(cards);
-                } else if(e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    state.focusIdx = Math.max(state.focusIdx - 1, 0);
-                    focusCard(cards);
-                } else if(e.key === 'Enter') {
-                    if(state.focusIdx >= 0) cards[state.focusIdx].click();
-                } else if(e.key === 'ArrowRight' || e.key === 'Escape') {
-                    toggleSidebar();
-                }
-            } else {
-                if(e.key === 'ArrowRight') zap(1);
-                else if(e.key === 'ArrowLeft') zap(-1);
-                else if(e.key === 'Enter' || e.key === 'ArrowUp') toggleSidebar();
-            }
-        }
-
-        function focusCard(cards) {
-            cards.forEach(c => c.classList.remove('focused'));
-            if(cards[state.focusIdx]) {
-                cards[state.focusIdx].classList.add('focused');
-                cards[state.focusIdx].scrollIntoView({block: 'center'});
-            }
-        }
-
-        // ============================
-        // ZAPPING
-        // ============================
-        function zap(dir) {
-            if(!state.current) return toggleSidebar();
-            const visibleList = getFilteredList();
-            if(visibleList.length === 0) return;
-            const idx = visibleList.findIndex(c => c.id === state.current.id);
-            if(idx === -1) return;
-            let next = idx + dir;
-            if(next >= visibleList.length) next = 0;
-            if(next < 0) next = visibleList.length - 1;
-            play(visibleList[next].id);
-        }
-
-        function getFilteredList() {
-            const term = ui.search.value.toLowerCase();
-            return state.list.filter(i => i.name.toLowerCase().includes(term));
-        }
-
-        // ============================
-        // SWITCH MODE
-        // ============================
-        async function switchMode(mode) {
-            state.mode = mode;
-            state.focusIdx = -1;
-            localStorage.setItem('mode', mode);
-
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`)?.classList.add('active');
-
-            ui.grid.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary);">Chargement...</div>';
-
-            try {
-                const res = await fetch(URLS[mode] + '?t=' + Date.now());
-                state.list = await res.json();
-                render();
-            } catch(e) {
-                ui.grid.innerHTML = '<div style="color:#ff4040; text-align:center; padding:20px;">Erreur de chargement</div>';
-            }
-        }
-
-        // ============================
-        // RENDER
-        // ============================
-        function render() {
-            const list = getFilteredList();
-            list.sort((a, b) => {
-                const aF = state.favs.includes(a.id);
-                const bF = state.favs.includes(b.id);
-                if (aF && !bF) return -1;
-                if (!aF && bF) return 1;
-                return 0;
-            });
-
-            ui.grid.innerHTML = list.map(item => `
-                <div class="channel-card ${state.current?.id === item.id ? 'active' : ''}" onclick="play(${item.id})">
-                    <img src="${item.logo || 'https://i.imgur.com/QxHt9NC.png'}" class="channel-logo" loading="lazy" onerror="this.src='https://i.imgur.com/QxHt9NC.png'">
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">${item.category || ''}</div>
+            <div class="player-header">
+                <div class="header-info">
+                    <img src="" id="currentLogo" style="height:30px; display:none;" onerror="this.style.display='none'">
+                    <div>
+                        <h2 id="currentTitle" style="font-size:1.2rem; margin:0;">Bienvenue</h2>
+                        <p id="currentCat" style="font-size:0.8rem; color:var(--text-secondary); margin:0;">Sélectionnez un contenu</p>
                     </div>
-                    ${state.favs.includes(item.id) ? '<span style="color:var(--fav-gold); flex-shrink:0;">★</span>' : ''}
                 </div>
-            `).join('');
+                <div class="header-controls">
+                    <button class="ctrl-btn" onclick="toggleFav()" title="Favoris">
+                        <svg id="favIcon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                    <button class="ctrl-btn" onclick="togglePiP()" title="Picture in Picture">
+                        <svg viewBox="0 0 24 24"><path d="M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z"/></svg>
+                    </button>
+                    <button class="ctrl-btn" onclick="toggleFullscreen()" title="Plein Écran">
+                        <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                    </button>
+                    <button class="ctrl-btn" onclick="toggleCast()" title="Caster">
+                        <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-wrapper">
+                <div class="mode-badge" id="modeBadge"></div>
+
+                <div class="zap-overlay">
+                    <div class="zap-zone prev" onclick="zap(-1)">
+                        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </div>
+                    <div class="zap-zone next" onclick="zap(1)">
+                        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                    </div>
+                </div>
+
+                <div class="loader" id="loader">
+                    <div class="spinner"></div>
+                    <div class="loader-text" id="loaderText">Chargement...</div>
+                </div>
+
+                <video id="videoPlayer" controls autoplay playsinline></video>
+                <iframe id="iframePlayer" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+const URLS = {
+    tv:     'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json',
+    series: 'https://gist.githubusercontent.com/mikefri/fc75ba4ad4eb3d8da1a3d1f6dc9c83f2/raw/series.json',
+    xxx:    'https://gist.githubusercontent.com/mikefri/c4ea8003ac647eeafd14c35db59431ea/raw/xx.json'
+};
+
+// Domaines qui nécessitent TOUJOURS le proxy (CORS bloqué)
+const PROXY_DOMAINS = [
+    'netplus.ch',
+    'viamotionhsi',
+    'cachehsi'
+];
+
+// ═══════════════════════════════════════════════════
+// ÉTAT
+// ═══════════════════════════════════════════════════
+let state = {
+    mode: localStorage.getItem('mode') || 'tv',
+    list: [],
+    current: null,
+    favs: JSON.parse(localStorage.getItem('favs') || '[]'),
+    focusIdx: -1,
+};
+let hlsPlayer = null;
+let dashPlayer = null;
+
+const ui = {
+    sidebar:    document.getElementById('sidebar'),
+    grid:       document.getElementById('grid'),
+    video:      document.getElementById('videoPlayer'),
+    iframe:     document.getElementById('iframePlayer'),
+    loader:     document.getElementById('loader'),
+    loaderText: document.getElementById('loaderText'),
+    container:  document.getElementById('playerContainer'),
+    search:     document.getElementById('searchInput'),
+    toast:      document.getElementById('toast'),
+    badge:      document.getElementById('modeBadge'),
+};
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+
+// Détermine si une URL doit passer par le proxy
+function needsProxy(url) {
+    return PROXY_DOMAINS.some(d => url.includes(d));
+}
+
+// Construit l'URL proxifiée
+function toProxy(url) {
+    return '/api/proxy?url=' + encodeURIComponent(url);
+}
+
+function showToast(msg, ms = 2500) {
+    ui.toast.textContent = msg;
+    ui.toast.classList.add('show');
+    setTimeout(() => ui.toast.classList.remove('show'), ms);
+}
+
+function setLoader(active, text = 'Chargement...') {
+    ui.loaderText.textContent = text;
+    ui.loader.classList.toggle('active', active);
+}
+
+function setBadge(text) {
+    if (text) { ui.badge.textContent = text; ui.badge.classList.add('show'); }
+    else { ui.badge.classList.remove('show'); }
+}
+
+// Détecte si l'URL est un flux natif (HLS/DASH/MP4) ou un embed
+function isNativeStream(url) {
+    return /\.(m3u8|mpd|mp4)(\?.*)?$/i.test(url);
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+function init() {
+    switchMode(state.mode);
+    ui.search.addEventListener('input', render);
+    document.addEventListener('keydown', handleKeys);
+    ui.video.addEventListener('waiting', () => setLoader(true, 'Mise en mémoire tampon...'));
+    ui.video.addEventListener('playing', () => setLoader(false));
+    ui.video.addEventListener('error', onVideoError);
+    if (window.innerWidth > 1000) toggleSidebar();
+}
+
+// ═══════════════════════════════════════════════════
+// CLAVIER
+// ═══════════════════════════════════════════════════
+function handleKeys(e) {
+    const menuOpen = ui.sidebar.classList.contains('open');
+    if (e.key === 'm' || e.key === 'M') toggleSidebar();
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+
+    if (menuOpen) {
+        const cards = document.querySelectorAll('.channel-card');
+        if (e.key === 'ArrowDown') { e.preventDefault(); state.focusIdx = Math.min(state.focusIdx + 1, cards.length - 1); focusCard(cards); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); state.focusIdx = Math.max(state.focusIdx - 1, 0); focusCard(cards); }
+        else if (e.key === 'Enter') { if (state.focusIdx >= 0) cards[state.focusIdx].click(); }
+        else if (e.key === 'ArrowRight' || e.key === 'Escape') toggleSidebar();
+    } else {
+        if (e.key === 'ArrowRight') zap(1);
+        else if (e.key === 'ArrowLeft') zap(-1);
+        else if (e.key === 'Enter' || e.key === 'ArrowUp') toggleSidebar();
+    }
+}
+
+function focusCard(cards) {
+    cards.forEach(c => c.classList.remove('focused'));
+    if (cards[state.focusIdx]) {
+        cards[state.focusIdx].classList.add('focused');
+        cards[state.focusIdx].scrollIntoView({ block: 'center' });
+    }
+}
+
+// ═══════════════════════════════════════════════════
+// ZAPPING
+// ═══════════════════════════════════════════════════
+function zap(dir) {
+    if (!state.current) return toggleSidebar();
+    const list = getFilteredList();
+    if (!list.length) return;
+    const idx = list.findIndex(c => c.id === state.current.id);
+    let next = (idx === -1) ? 0 : (idx + dir + list.length) % list.length;
+    play(list[next].id);
+}
+
+function getFilteredList() {
+    const term = ui.search.value.toLowerCase();
+    return state.list.filter(i => i.name.toLowerCase().includes(term));
+}
+
+// ═══════════════════════════════════════════════════
+// MODE / RENDER
+// ═══════════════════════════════════════════════════
+async function switchMode(mode) {
+    state.mode = mode;
+    state.focusIdx = -1;
+    localStorage.setItem('mode', mode);
+
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`)?.classList.add('active');
+    ui.grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
+
+    try {
+        const res = await fetch(URLS[mode] + '?t=' + Date.now());
+        state.list = await res.json();
+        render();
+    } catch {
+        ui.grid.innerHTML = '<div style="color:#ff4040;text-align:center;padding:20px">Erreur de chargement</div>';
+    }
+}
+
+function render() {
+    const list = getFilteredList().sort((a, b) => {
+        const af = state.favs.includes(a.id), bf = state.favs.includes(b.id);
+        return af === bf ? 0 : af ? -1 : 1;
+    });
+
+    ui.grid.innerHTML = list.map(item => `
+        <div class="channel-card ${state.current?.id === item.id ? 'active' : ''}" onclick="play(${item.id})">
+            <img src="${item.logo || ''}" class="channel-logo" loading="lazy"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 fill=%22%23333%22/><text x=%2220%22 y=%2225%22 text-anchor=%22middle%22 fill=%22%23aaa%22 font-size=%2214%22>TV</text></svg>'">
+            <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary)">${item.category || ''}</div>
+            </div>
+            ${state.favs.includes(item.id) ? '<span style="color:var(--fav-gold);flex-shrink:0">★</span>' : ''}
+        </div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// LECTURE
+// ═══════════════════════════════════════════════════
+function resetPlayers() {
+    if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
+    if (dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
+    ui.video.pause();
+    ui.video.removeAttribute('src');
+    ui.video.style.display = 'none';
+    ui.iframe.style.display = 'none';
+    ui.iframe.src = '';
+    setBadge(null);
+}
+
+function play(id) {
+    const item = state.list.find(i => i.id === id);
+    if (!item) return;
+
+    state.current = item;
+    render();
+
+    // Header
+    document.getElementById('currentTitle').textContent = item.name;
+    document.getElementById('currentCat').textContent = item.category || '';
+    const logo = document.getElementById('currentLogo');
+    if (item.logo) { logo.src = item.logo; logo.style.display = 'block'; }
+    else { logo.style.display = 'none'; }
+    updateFavIcon();
+
+    resetPlayers();
+    setLoader(true, 'Connexion...');
+
+    const url = item.url;
+
+    // ── CAS 1 : Embed / iframe (rereyano, mega, pas d'extension stream) ──
+    if (!isNativeStream(url)) {
+        const isMega = url.includes('mega.nz');
+        ui.iframe.src = isMega ? url.replace('/file/', '/embed/') : url;
+        ui.iframe.style.display = 'block';
+        setLoader(false);
+        setBadge('EMBED');
+        if (window.innerWidth < 1000) toggleSidebar();
+        return;
+    }
+
+    // ── CAS 2 : Flux natif ──
+    ui.video.style.display = 'block';
+
+    const useProxy = needsProxy(url);
+    const finalUrl = useProxy ? toProxy(url) : url;
+    setBadge(useProxy ? '⚡ PROXY' : 'DIRECT');
+
+    if (url.includes('.mpd')) {
+        // DASH
+        loadDash(finalUrl);
+    } else {
+        // HLS / MP4
+        loadHls(url, finalUrl);
+    }
+
+    if (window.innerWidth < 1000) toggleSidebar();
+}
+
+function loadDash(finalUrl) {
+    if (typeof dashjs === 'undefined') {
+        showToast('dash.js non disponible');
+        setLoader(false);
+        return;
+    }
+    setLoader(true, 'Chargement DASH...');
+    dashPlayer = dashjs.MediaPlayer().create();
+    dashPlayer.updateSettings({
+        streaming: {
+            delay: { liveDelay: 4 },
+            retryAttempts: { MPD: 3, MediaSegment: 3 },
+            retryIntervals: { MPD: 500, MediaSegment: 1000 },
         }
+    });
+    dashPlayer.initialize(ui.video, finalUrl, true);
+    dashPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => setLoader(false));
+    dashPlayer.on(dashjs.MediaPlayer.events.ERROR, (e) => {
+        console.error('[DASH]', e);
+        setLoader(false);
+        showToast('⚠️ Erreur DASH : ' + (e.error?.message || 'flux indisponible'));
+    });
+}
 
-        // ============================
-        // LECTURE VIDÉO
-        // ============================
-        function loadVideoUrl(url, forceProxy = false) {
-            // Reset players
-            if(hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-            if(dashPlayer) { dashPlayer.reset(); dashPlayer = null; }
-            ui.video.pause();
-            ui.video.removeAttribute('src');
-
-            const finalUrl = forceProxy ? proxyUrl(url) : url;
-
-            // Badge proxy
-            ui.proxyBadge.classList.add('visible');
-            if (forceProxy) {
-                ui.proxyBadge.className = 'proxy-badge visible on';
-                ui.proxyBadge.textContent = '⚡ PROXY';
-            } else {
-                ui.proxyBadge.className = 'proxy-badge visible off';
-                ui.proxyBadge.textContent = 'DIRECT';
-            }
-
-            if (url.endsWith('.m3u8')) {
-                // HLS
-                if (Hls.isSupported()) {
-                    hlsPlayer = new Hls({ xhrSetup: forceProxy ? undefined : undefined });
-                    hlsPlayer.loadSource(finalUrl);
-                    hlsPlayer.attachMedia(ui.video);
-                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => ui.video.play().catch(()=>{}));
-                    hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal && !forceProxy) {
-                            console.log('[TeslaTV] HLS erreur directe → proxy');
-                            state.usingProxy = true;
-                            loadVideoUrl(url, true);
-                        }
-                    });
+function loadHls(originalUrl, finalUrl) {
+    if (Hls.isSupported()) {
+        setLoader(true, 'Chargement HLS...');
+        hlsPlayer = new Hls({ enableWorker: true });
+        hlsPlayer.loadSource(finalUrl);
+        hlsPlayer.attachMedia(ui.video);
+        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+            setLoader(false);
+            ui.video.play().catch(() => {});
+        });
+        hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                console.error('[HLS fatal]', data);
+                // Fallback proxy si on était en direct
+                if (!finalUrl.startsWith('/api/proxy') && needsProxy(originalUrl) === false) {
+                    showToast('Tentative via proxy...');
+                    setBadge('⚡ PROXY');
+                    hlsPlayer.destroy(); hlsPlayer = null;
+                    loadHls(originalUrl, toProxy(originalUrl));
                 } else {
-                    // Safari natif
-                    ui.video.src = finalUrl;
-                    ui.video.play().catch(()=>{});
+                    setLoader(false);
+                    showToast('⚠️ Flux HLS indisponible');
                 }
-            } else if (url.endsWith('.mpd')) {
-                // DASH — on tente d'abord sans proxy, le proxy est activé sur erreur
-                if (typeof dashjs !== 'undefined') {
-                    dashPlayer = dashjs.MediaPlayer().create();
-                    dashPlayer.initialize(ui.video, finalUrl, true);
-                    dashPlayer.on(dashjs.MediaPlayer.events.ERROR, function(e) {
-                        if (!forceProxy) {
-                            console.log('[TeslaTV] DASH erreur directe → proxy');
-                            state.usingProxy = true;
-                            setTimeout(() => loadVideoUrl(url, true), 500);
-                        }
-                    });
-                }
-            } else {
-                // MP4 ou autre
-                ui.video.src = finalUrl;
-                ui.video.play().catch(()=>{});
             }
-        }
+        });
+    } else if (ui.video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari natif
+        ui.video.src = finalUrl;
+        ui.video.play().catch(() => {});
+    } else {
+        ui.video.src = finalUrl;
+        ui.video.play().catch(() => {});
+    }
+}
 
-        function play(id) {
-            const item = state.list.find(i => i.id === id);
-            if(!item) return;
+function onVideoError() {
+    setLoader(false);
+    if (state.current) showToast('⚠️ Erreur lecture — flux peut-être indisponible');
+}
 
-            state.current = item;
-            state.usingProxy = false;
-            render();
+// ═══════════════════════════════════════════════════
+// OUTILS
+// ═══════════════════════════════════════════════════
+function toggleSidebar() {
+    ui.sidebar.classList.toggle('open');
+    document.getElementById('sidebarToggle').classList.toggle('open');
+    document.getElementById('mainContent').classList.toggle('shifted');
+    if (ui.sidebar.classList.contains('open')) {
+        state.focusIdx = -1;
+        ui.search.focus();
+    }
+}
 
-            // UI Header
-            document.getElementById('currentTitle').textContent = item.name;
-            document.getElementById('currentCat').textContent = item.category || '';
-            const logo = document.getElementById('currentLogo');
-            logo.src = item.logo || '';
-            logo.style.display = item.logo ? 'block' : 'none';
-            updateFavIcon();
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        ui.container.requestFullscreen().catch(e => showToast('Erreur plein écran'));
+    } else {
+        document.exitFullscreen();
+    }
+}
 
-            ui.loader.classList.add('active');
-            ui.video.style.display = 'none';
-            ui.iframe.style.display = 'none';
-            ui.iframe.src = '';
+function toggleFav() {
+    if (!state.current) return;
+    const id = state.current.id;
+    const wasFav = state.favs.includes(id);
+    state.favs = wasFav ? state.favs.filter(f => f !== id) : [...state.favs, id];
+    localStorage.setItem('favs', JSON.stringify(state.favs));
+    render();
+    updateFavIcon();
+    showToast(wasFav ? '💔 Retiré des favoris' : '⭐ Ajouté aux favoris');
+}
 
-            const url = item.url;
-            const isMega = url.includes('mega.nz');
-            const isStream = url.match(/\.(m3u8|mpd|mp4)(\?.*)?$/i);
+function updateFavIcon() {
+    document.getElementById('favIcon').style.fill =
+        (state.current && state.favs.includes(state.current.id)) ? 'var(--fav-gold)' : 'currentColor';
+}
 
-            if (isMega || !isStream) {
-                // Iframe (Mega, embed, etc.)
-                ui.iframe.src = isMega ? url.replace('/file/', '/embed/') : url;
-                ui.iframe.style.display = 'block';
-                ui.loader.classList.remove('active');
-                ui.proxyBadge.classList.remove('visible');
-            } else {
-                // Lecteur natif
-                ui.video.style.display = 'block';
-                // On tente d'abord en direct, le fallback proxy se fait sur erreur
-                loadVideoUrl(url, false);
-            }
+function togglePiP() {
+    if (document.pictureInPictureElement) document.exitPictureInPicture();
+    else if (ui.video.readyState >= 2) ui.video.requestPictureInPicture().catch(() => showToast('PiP non disponible'));
+    else showToast('Lance une vidéo d\'abord');
+}
 
-            if(window.innerWidth < 1000) toggleSidebar();
-        }
+let sc = 0;
+function unlockSecret() {
+    sc++;
+    if (sc === 5) { document.getElementById('xxxBtn').style.display = 'block'; showToast('🔞 Mode débloqué'); }
+    setTimeout(() => sc = 0, 2000);
+}
 
-        // ============================
-        // OUTILS
-        // ============================
-        function toggleSidebar() {
-            ui.sidebar.classList.toggle('open');
-            document.getElementById('sidebarToggle').classList.toggle('open');
-            document.getElementById('mainContent').classList.toggle('shifted');
-            if(ui.sidebar.classList.contains('open')) {
-                state.focusIdx = 0;
-                ui.search.focus();
-            }
-        }
+function toggleCast() {
+    try { cast.framework.CastContext.getInstance().requestSession(); }
+    catch { showToast('Cast non disponible'); }
+}
 
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                ui.container.requestFullscreen().catch(err => showToast('Erreur plein écran: ' + err.message));
-            } else {
-                document.exitFullscreen();
-            }
-        }
+window['__onGCastApiAvailable'] = function(ok) {
+    if (ok) cast.framework.CastContext.getInstance().setOptions({
+        receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+    });
+};
 
-        function toggleFav() {
-            if(!state.current) return;
-            const id = state.current.id;
-            const wasFav = state.favs.includes(id);
-            if(wasFav) state.favs = state.favs.filter(f => f !== id);
-            else state.favs.push(id);
-            localStorage.setItem('favs', JSON.stringify(state.favs));
-            render();
-            updateFavIcon();
-            showToast(wasFav ? '💔 Retiré des favoris' : '⭐ Ajouté aux favoris');
-        }
-
-        function updateFavIcon() {
-            const icon = document.getElementById('favIcon');
-            icon.style.fill = (state.current && state.favs.includes(state.current.id))
-                ? 'var(--fav-gold)' : 'currentColor';
-        }
-
-        function togglePiP() {
-            if(document.pictureInPictureElement) {
-                document.exitPictureInPicture();
-            } else if(ui.video.readyState >= 3) {
-                ui.video.requestPictureInPicture().catch(() => showToast('PiP non disponible'));
-            }
-        }
-
-        // Secret
-        let sc = 0;
-        function unlockSecret() {
-            sc++;
-            if(sc === 5) {
-                document.getElementById('xxxBtn').style.display = 'block';
-                showToast('🔞 Mode débloqué');
-            }
-            setTimeout(() => sc = 0, 2000);
-        }
-
-        // Cast
-        function toggleCast() {
-            try {
-                cast.framework.CastContext.getInstance().requestSession();
-            } catch(e) {
-                showToast('Cast non disponible');
-            }
-        }
-        window['__onGCastApiAvailable'] = function(isAvailable) {
-            if (isAvailable) {
-                cast.framework.CastContext.getInstance().setOptions({
-                    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
-                });
-            }
-        };
-
-        // ============================
-        // DÉMARRAGE
-        // ============================
-        init();
-    </script>
+init();
+</script>
 </body>
 </html>
