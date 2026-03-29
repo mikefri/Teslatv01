@@ -134,34 +134,6 @@
         .toast { position:fixed; bottom:2rem; right:2rem; z-index:9999; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:12px; padding:0.8rem 1.2rem; font-size:0.9rem; pointer-events:none; transform:translateY(20px); opacity:0; transition:all 0.3s; }
         .toast.show { transform:translateY(0); opacity:1; }
 
-        /* ── IPTV PANEL ── */
-        .iptv-panel { flex:1; overflow-y:auto; padding:1rem; display:none; flex-direction:column; gap:1rem; }
-        .iptv-panel.active { display:flex; }
-
-        .iptv-section { background:var(--bg-primary); border:1px solid var(--border); border-radius:14px; padding:1rem; }
-        .iptv-section h3 { font-size:0.85rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem; }
-
-        .iptv-field { width:100%; padding:10px 12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:10px; color:white; font-size:0.9rem; margin-bottom:8px; transition:0.2s; }
-        .iptv-field:focus { border-color:var(--accent); }
-        .iptv-field::placeholder { color:var(--text-secondary); }
-
-        .iptv-btn { width:100%; padding:10px; border:none; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem; transition:0.2s; }
-        .iptv-btn.primary { background:var(--accent); color:#000; }
-        .iptv-btn.primary:hover { opacity:0.85; }
-        .iptv-btn.danger { background:rgba(255,59,59,0.15); color:var(--rec-red); border:1px solid rgba(255,59,59,0.3); margin-top:4px; }
-        .iptv-btn.danger:hover { background:var(--rec-red); color:#fff; }
-
-        .iptv-drop { border:2px dashed var(--border); border-radius:12px; padding:1.5rem; text-align:center; cursor:pointer; transition:0.2s; color:var(--text-secondary); font-size:0.85rem; }
-        .iptv-drop:hover, .iptv-drop.dragover { border-color:var(--accent); color:var(--accent); background:rgba(0,217,255,0.05); }
-        .iptv-drop svg { width:32px; height:32px; fill:currentColor; display:block; margin:0 auto 8px; }
-
-        .iptv-list { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; }
-        .iptv-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--bg-tertiary); border-radius:8px; font-size:0.85rem; }
-        .iptv-item-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .iptv-item-del { background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.1rem; padding:0 4px; transition:0.2s; flex-shrink:0; }
-        .iptv-item-del:hover { color:var(--rec-red); }
-        .iptv-empty { color:var(--text-secondary); font-size:0.85rem; text-align:center; padding:1rem 0; }
-
         @media (max-width:768px) {
             .sidebar { width:100%; }
             .sidebar-toggle.open { left:auto; right:0; }
@@ -186,47 +158,13 @@
         <div class="mode-switcher">
             <button class="mode-btn active" onclick="switchMode('tv')">TV</button>
             <button class="mode-btn" onclick="switchMode('series')">Séries</button>
-            <button class="mode-btn" onclick="switchMode('iptv')" style="color:#00d9ff">IPTV</button>
             <button id="xxxBtn" class="mode-btn" style="display:none;color:#ff0040" onclick="switchMode('xxx')">18+</button>
         </div>
     </div>
-    <div class="search-container" id="searchContainer">
+    <div class="search-container">
         <input type="text" class="search-box" id="searchInput" placeholder="Rechercher une chaîne...">
     </div>
     <div class="channels-grid" id="grid"></div>
-
-    <!-- IPTV PANEL -->
-    <div class="iptv-panel" id="iptvPanel">
-
-        <!-- Ajouter une chaîne manuellement -->
-        <div class="iptv-section">
-            <h3>➕ Ajouter une chaîne</h3>
-            <input class="iptv-field" id="iptvName" placeholder="Nom de la chaîne (ex: TF1)">
-            <input class="iptv-field" id="iptvUrl" placeholder="URL du flux (.m3u8, .mpd, .mp4)">
-            <input class="iptv-field" id="iptvCat" placeholder="Catégorie (optionnel)">
-            <input class="iptv-field" id="iptvLogo" placeholder="URL du logo (optionnel)">
-            <button class="iptv-btn primary" onclick="iptvAdd()">Ajouter la chaîne</button>
-        </div>
-
-        <!-- Import M3U -->
-        <div class="iptv-section">
-            <h3>📂 Importer une playlist M3U</h3>
-            <div class="iptv-drop" id="iptvDrop" onclick="$('iptvFile').click()" ondragover="iptvDragOver(event)" ondragleave="iptvDragLeave()" ondrop="iptvDrop(event)">
-                <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                Glisser un fichier .m3u ici<br><small style="opacity:0.6">ou cliquer pour choisir</small>
-            </div>
-            <input type="file" id="iptvFile" accept=".m3u,.m3u8" style="display:none" onchange="iptvFileLoad(this)">
-        </div>
-
-        <!-- Liste des chaînes IPTV ajoutées -->
-        <div class="iptv-section">
-            <h3>📺 Mes chaînes IPTV (<span id="iptvCount">0</span>)</h3>
-            <div class="iptv-list" id="iptvList"></div>
-            <div class="iptv-empty" id="iptvEmpty">Aucune chaîne ajoutée</div>
-            <button class="iptv-btn danger" onclick="iptvClearAll()" style="margin-top:8px">🗑 Tout supprimer</button>
-        </div>
-
-    </div>
 </div>
 
 <div class="main-content" id="mainContent">
@@ -464,18 +402,6 @@ async function switchMode(mode) {
     localStorage.setItem('mode', mode);
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`)?.classList.add('active');
-
-    const isIptv = mode === 'iptv';
-    $('searchContainer').style.display = isIptv ? 'none' : 'block';
-    $('grid').style.display            = isIptv ? 'none' : 'block';
-    $('iptvPanel').classList.toggle('active', isIptv);
-
-    if (isIptv) {
-        state.list = iptvGetList();
-        iptvRenderList();
-        return;
-    }
-
     grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
     try {
         const r = await fetch(GISTS[mode] + '?t=' + Date.now());
@@ -502,12 +428,10 @@ function render() {
 
 // ── LECTURE ───────────────────────────────────────────────────────
 function play(id) {
-    // Cherche dans state.list ET dans la liste IPTV sauvegardée
-    let item = state.list.find(i => String(i.id) === String(id));
-    if (!item) item = iptvGetList().find(i => String(i.id) === String(id));
+    const item = state.list.find(i => i.id === id);
     if (!item) return;
     state.current = item;
-    if (state.mode === 'iptv') renderIptv(); else render();
+    render();
 
     $('currentTitle').textContent = item.name;
     $('currentCat').textContent   = item.category || '';
@@ -598,105 +522,6 @@ function toggleCast() {
 window['__onGCastApiAvailable'] = ok => {
     if(ok) cast.framework.CastContext.getInstance().setOptions({receiverApplicationId:chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID});
 };
-
-// ── IPTV ──────────────────────────────────────────────────────────
-function iptvGetList() {
-    return JSON.parse(localStorage.getItem('iptvChannels') || '[]');
-}
-function iptvSaveList(list) {
-    localStorage.setItem('iptvChannels', JSON.stringify(list));
-}
-
-function iptvAdd() {
-    const name = $('iptvName').value.trim();
-    const url  = $('iptvUrl').value.trim();
-    const cat  = $('iptvCat').value.trim();
-    const logo = $('iptvLogo').value.trim();
-    if (!name || !url) { toast('⚠️ Nom et URL requis'); return; }
-    const list = iptvGetList();
-    list.push({ id: 'iptv_' + Date.now(), name, url, category: cat || 'IPTV', logo });
-    iptvSaveList(list);
-    $('iptvName').value = ''; $('iptvUrl').value = ''; $('iptvCat').value = ''; $('iptvLogo').value = '';
-    iptvRenderList();
-    toast('✅ Chaîne ajoutée !');
-}
-
-function iptvDelete(id) {
-    iptvSaveList(iptvGetList().filter(c => c.id !== id));
-    iptvRenderList();
-    // Si la chaîne supprimée est en cours de lecture, reset
-    if (state.current?.id === id) { state.current = null; }
-}
-
-function iptvClearAll() {
-    if (!confirm('Supprimer toutes les chaînes IPTV ?')) return;
-    iptvSaveList([]);
-    iptvRenderList();
-    toast('🗑 Liste vidée');
-}
-
-function iptvRenderList() {
-    const list = iptvGetList();
-    state.list = list; // toujours sync
-    $('iptvCount').textContent = list.length;
-    $('iptvEmpty').style.display = list.length ? 'none' : 'block';
-    $('iptvList').innerHTML = list.map(c => `
-        <div class="iptv-item">
-            <span class="iptv-item-name" title="${c.url}" style="cursor:pointer;font-weight:600" data-id="${c.id}" onclick="play(this.dataset.id)">▶ ${c.name}</span>
-            <small style="color:var(--text-secondary);flex-shrink:0">${c.category}</small>
-            <button class="iptv-item-del" data-id="${c.id}" onclick="iptvDelete(this.dataset.id)" title="Supprimer">✕</button>
-        </div>`).join('');
-
-    if (state.mode === 'iptv') renderIptv();
-}
-
-function renderIptv() {
-    const list = state.list.filter(i => i.name.toLowerCase().includes(search.value.toLowerCase()));
-    grid.innerHTML = list.length ? list.map(item => `
-        <div class="channel-card ${state.current?.id===item.id?'active':''}" data-id="${item.id}" onclick="play(this.dataset.id)">
-            <img src="${item.logo||''}" class="channel-logo" loading="lazy" onerror="this.style.opacity=0">
-            <div style="flex:1;min-width:0">
-                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
-                <div style="font-size:0.8rem;color:var(--text-secondary)">${item.category||''}</div>
-            </div>
-        </div>`).join('')
-    : '<div class="iptv-empty">Aucune chaîne — ajoutez-en dans le panneau IPTV</div>';
-}
-
-// Drag & drop M3U
-function iptvDragOver(e) { e.preventDefault(); $('iptvDrop').classList.add('dragover'); }
-function iptvDragLeave()  { $('iptvDrop').classList.remove('dragover'); }
-function iptvDrop(e)      { e.preventDefault(); $('iptvDrop').classList.remove('dragover'); const f = e.dataTransfer.files[0]; if(f) parseM3U(f); }
-function iptvFileLoad(input) { if(input.files[0]) parseM3U(input.files[0]); input.value=''; }
-
-function parseM3U(file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-        const lines = e.target.result.split('\n');
-        const list  = iptvGetList();
-        let added = 0, info = null;
-        lines.forEach(line => {
-            line = line.trim();
-            if (line.startsWith('#EXTINF')) {
-                const nameMatch = line.match(/,(.+)$/);
-                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
-                const catMatch  = line.match(/group-title="([^"]+)"/);
-                info = {
-                    name:     nameMatch  ? nameMatch[1].trim() : 'Chaîne',
-                    logo:     logoMatch  ? logoMatch[1] : '',
-                    category: catMatch   ? catMatch[1]  : 'IPTV'
-                };
-            } else if (line && !line.startsWith('#') && info) {
-                list.push({ id: 'iptv_' + Date.now() + '_' + added, ...info, url: line });
-                added++; info = null;
-            }
-        });
-        iptvSaveList(list);
-        iptvRenderList();
-        toast(`✅ ${added} chaîne(s) importée(s)`);
-    };
-    reader.readAsText(file);
-}
 
 init();
 </script>
