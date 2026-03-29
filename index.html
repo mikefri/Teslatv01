@@ -19,6 +19,7 @@
             --border: rgba(255,255,255,0.1);
             --shadow: rgba(0,0,0,0.5);
             --fav-gold: #ffb700;
+            --rec-red: #ff3b3b;
         }
         * { margin:0; padding:0; box-sizing:border-box; outline:none; }
         body { font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); overflow:hidden; height:100vh; }
@@ -74,7 +75,7 @@
             border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;
         }
         .header-info { display:flex; align-items:center; gap:1rem; }
-        .header-controls { display:flex; gap:0.5rem; }
+        .header-controls { display:flex; gap:0.5rem; align-items:center; }
         .ctrl-btn {
             width:40px; height:40px; border-radius:10px; border:1px solid var(--border);
             background:var(--bg-primary); color:var(--text-secondary); cursor:pointer;
@@ -83,9 +84,41 @@
         .ctrl-btn:hover { background:var(--accent); color:#000; border-color:var(--accent); }
         .ctrl-btn svg { width:20px; height:20px; fill:currentColor; }
 
+        /* Bouton enregistrement */
+        .rec-btn {
+            width:40px; height:40px; border-radius:10px; border:1px solid var(--border);
+            background:var(--bg-primary); color:var(--text-secondary); cursor:pointer;
+            display:flex; align-items:center; justify-content:center; transition:0.2s;
+            position:relative;
+        }
+        .rec-btn:hover { background:rgba(255,59,59,0.15); border-color:var(--rec-red); color:var(--rec-red); }
+        .rec-btn.recording { background:var(--rec-red); border-color:var(--rec-red); color:#fff; animation:recPulse 1.2s ease-in-out infinite; }
+        .rec-btn svg { width:20px; height:20px; fill:currentColor; }
+        @keyframes recPulse { 0%,100% { box-shadow:0 0 0 0 rgba(255,59,59,0.6); } 50% { box-shadow:0 0 0 8px rgba(255,59,59,0); } }
+
+        /* Badge durée enregistrement */
+        .rec-timer {
+            font-size:0.75rem; font-weight:700; color:var(--rec-red);
+            background:rgba(255,59,59,0.12); border:1px solid rgba(255,59,59,0.3);
+            border-radius:6px; padding:4px 8px; display:none; font-variant-numeric:tabular-nums;
+            letter-spacing:0.05em;
+        }
+        .rec-timer.visible { display:block; }
+
         .video-wrapper { position:relative; flex:1; background:#000; display:flex; align-items:center; justify-content:center; }
         #videoPlayer { width:100%; height:100%; }
         #iframePlayer { width:100%; height:100%; border:none; display:none; }
+
+        /* Indicateur REC en overlay sur la vidéo */
+        .rec-indicator {
+            position:absolute; top:16px; left:16px; z-index:20;
+            display:none; align-items:center; gap:6px;
+            background:rgba(0,0,0,0.65); border-radius:8px; padding:6px 12px;
+            font-size:0.8rem; font-weight:700; color:#fff;
+        }
+        .rec-indicator.visible { display:flex; }
+        .rec-dot { width:10px; height:10px; background:var(--rec-red); border-radius:50%; animation:blink 1s step-start infinite; flex-shrink:0; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
         .zap-overlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:flex; justify-content:space-between; align-items:center; z-index:10; }
         .zap-zone { width:15%; height:60%; pointer-events:auto; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:0.3s; border-radius:12px; }
@@ -158,9 +191,22 @@
                     <button class="ctrl-btn" onclick="toggleCast()" title="Caster">
                         <svg viewBox="0 0 24 24"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
                     </button>
+
+                    <!-- BOUTON ENREGISTREMENT -->
+                    <span class="rec-timer" id="recTimer">00:00</span>
+                    <button class="rec-btn" id="recBtn" onclick="toggleRecord()" title="Enregistrer">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                    </button>
                 </div>
             </div>
             <div class="video-wrapper">
+                <!-- Indicateur REC overlay -->
+                <div class="rec-indicator" id="recIndicator">
+                    <div class="rec-dot"></div>
+                    <span id="recOverlayTime">00:00</span>
+                    REC
+                </div>
+
                 <div class="zap-overlay">
                     <div class="zap-zone prev" onclick="zap(-1)">
                         <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
@@ -192,6 +238,111 @@ let state = {
 };
 let hls = null, dash = null;
 
+// ── ENREGISTREMENT ────────────────────────────────────────────────
+let mediaRecorder = null;
+let recChunks = [];
+let recInterval = null;
+let recSeconds = 0;
+
+function toggleRecord() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        stopRecord();
+    } else {
+        startRecord();
+    }
+}
+
+function startRecord() {
+    const video = $('videoPlayer');
+    if (!video || video.style.display === 'none') {
+        toast('⚠️ Enregistrement impossible sur les chaînes en iframe');
+        return;
+    }
+    if (!video.srcObject && !video.src) {
+        toast('⚠️ Lance une chaîne avant d\'enregistrer');
+        return;
+    }
+
+    let stream;
+    try {
+        stream = video.captureStream ? video.captureStream() : video.mozCaptureStream();
+    } catch(e) {
+        toast('⚠️ Capture non supportée sur ce navigateur');
+        return;
+    }
+
+    const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4']
+        .find(m => MediaRecorder.isTypeSupported(m)) || '';
+
+    try {
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    } catch(e) {
+        toast('⚠️ MediaRecorder non supporté');
+        return;
+    }
+
+    recChunks = [];
+    recSeconds = 0;
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+    mediaRecorder.onstop = saveRecord;
+    mediaRecorder.start(1000); // chunk toutes les secondes
+
+    // UI
+    $('recBtn').classList.add('recording');
+    $('recTimer').classList.add('visible');
+    $('recIndicator').classList.add('visible');
+
+    recInterval = setInterval(() => {
+        recSeconds++;
+        const t = formatRecTime(recSeconds);
+        $('recTimer').textContent = t;
+        $('recOverlayTime').textContent = t;
+    }, 1000);
+
+    toast('⏺ Enregistrement démarré');
+}
+
+function stopRecord() {
+    if (!mediaRecorder) return;
+    mediaRecorder.stop();
+    clearInterval(recInterval);
+
+    $('recBtn').classList.remove('recording');
+    $('recTimer').classList.remove('visible');
+    $('recTimer').textContent = '00:00';
+    $('recIndicator').classList.remove('visible');
+
+    toast('⏹ Enregistrement terminé — téléchargement...');
+}
+
+function saveRecord() {
+    if (!recChunks.length) return;
+    const blob = new Blob(recChunks, { type: recChunks[0].type || 'video/webm' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const name = (state.current?.name || 'TeslaTV').replace(/[^a-z0-9]/gi,'_');
+    const date = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href     = url;
+    a.download = `${name}_${date}.webm`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    recChunks = [];
+}
+
+function formatRecTime(s) {
+    const m = Math.floor(s / 60).toString().padStart(2,'0');
+    const sec = (s % 60).toString().padStart(2,'0');
+    return `${m}:${sec}`;
+}
+
+// ── PROXY : .mpd ET .m3u8 netplus.ch ─────────────────────────────
+function urlFor(url) {
+    if (url.endsWith('.mpd') || (url.includes('.m3u8') && url.includes('netplus.ch')))
+        return '/api/proxy?url=' + encodeURIComponent(url);
+    return url;
+}
+
 const $ = id => document.getElementById(id);
 const video   = $('videoPlayer');
 const iframe  = $('iframePlayer');
@@ -199,13 +350,6 @@ const loader  = $('loader');
 const grid    = $('grid');
 const search  = $('searchInput');
 const sidebar = $('sidebar');
-
-// ── PROXY : .mpd ET .m3u8 netplus.ch ─────────────────────────────
-function urlFor(url) {
-    if (url.endsWith('.mpd') || (url.includes('.m3u8') && url.includes('netplus.ch')))
-        return '/api/proxy?url=' + encodeURIComponent(url);
-    return url; // autres HLS et embeds : direct
-}
 
 // ── INIT ──────────────────────────────────────────────────────────
 function init() {
@@ -295,6 +439,9 @@ function play(id) {
     logo.src = item.logo || ''; logo.style.display = item.logo ? 'block' : 'none';
     updateFavIcon();
 
+    // Arrêter enregistrement si chaîne change
+    if (mediaRecorder && mediaRecorder.state === 'recording') stopRecord();
+
     // Reset
     if (hls)  { hls.destroy();  hls  = null; }
     if (dash) { dash.reset();   dash = null; }
@@ -307,19 +454,16 @@ function play(id) {
     const isStream = /\.(m3u8|mpd|mp4)(\?.*)?$/i.test(url);
 
     if (!isStream) {
-        // ── EMBED (rereyano, mega, etc.) ──
         iframe.src = url.includes('mega.nz') ? url.replace('/file/','/embed/') : url;
         iframe.style.display = 'block';
         loader.classList.remove('active');
     } else if (url.endsWith('.mpd')) {
-        // ── DASH via proxy ──
         video.style.display = 'block';
         dash = dashjs.MediaPlayer().create();
         dash.initialize(video, urlFor(url), true);
         dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => loader.classList.remove('active'));
         dash.on(dashjs.MediaPlayer.events.ERROR, () => loader.classList.remove('active'));
     } else {
-        // ── HLS (via proxy si netplus.ch) ──
         video.style.display = 'block';
         if (Hls.isSupported()) {
             hls = new Hls();
