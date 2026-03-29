@@ -502,10 +502,12 @@ function render() {
 
 // ── LECTURE ───────────────────────────────────────────────────────
 function play(id) {
-    const item = state.list.find(i => String(i.id) === String(id));
+    // Cherche dans state.list ET dans la liste IPTV sauvegardée
+    let item = state.list.find(i => String(i.id) === String(id));
+    if (!item) item = iptvGetList().find(i => String(i.id) === String(id));
     if (!item) return;
     state.current = item;
-    render();
+    if (state.mode === 'iptv') renderIptv(); else render();
 
     $('currentTitle').textContent = item.name;
     $('currentCat').textContent   = item.category || '';
@@ -635,26 +637,23 @@ function iptvClearAll() {
 
 function iptvRenderList() {
     const list = iptvGetList();
+    state.list = list; // toujours sync
     $('iptvCount').textContent = list.length;
     $('iptvEmpty').style.display = list.length ? 'none' : 'block';
     $('iptvList').innerHTML = list.map(c => `
         <div class="iptv-item">
-            <span class="iptv-item-name" title="${c.url}">${c.name}</span>
+            <span class="iptv-item-name" title="${c.url}" style="cursor:pointer;font-weight:600" data-id="${c.id}" onclick="play(this.dataset.id)">▶ ${c.name}</span>
             <small style="color:var(--text-secondary);flex-shrink:0">${c.category}</small>
-            <button class="iptv-item-del" onclick="iptvDelete('${c.id}')" title="Supprimer">✕</button>
+            <button class="iptv-item-del" data-id="${c.id}" onclick="iptvDelete(this.dataset.id)" title="Supprimer">✕</button>
         </div>`).join('');
 
-    // Met à jour state.list si on est en mode iptv
-    if (state.mode === 'iptv') {
-        state.list = list;
-        renderIptv();
-    }
+    if (state.mode === 'iptv') renderIptv();
 }
 
 function renderIptv() {
     const list = state.list.filter(i => i.name.toLowerCase().includes(search.value.toLowerCase()));
     grid.innerHTML = list.length ? list.map(item => `
-        <div class="channel-card ${state.current?.id===item.id?'active':''}" onclick="play('${item.id}')">
+        <div class="channel-card ${state.current?.id===item.id?'active':''}" data-id="${item.id}" onclick="play(this.dataset.id)">
             <img src="${item.logo||''}" class="channel-logo" loading="lazy" onerror="this.style.opacity=0">
             <div style="flex:1;min-width:0">
                 <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
