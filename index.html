@@ -62,14 +62,14 @@
         .channel-card.active { border-color:var(--accent); background:linear-gradient(90deg,rgba(0,217,255,0.1),transparent); }
         .channel-logo { width:40px; height:40px; object-fit:contain; background:rgba(255,255,255,0.1); border-radius:8px; padding:4px; flex-shrink:0; }
 
-        .main-content { transition:margin-left 0.3s; height:100vh; padding:1rem; display:flex; flex-direction:column; }
+        .main-content { transition:margin-left 0.3s; height:100vh; padding:1rem; display:flex; flex-direction:column; justify-content:center; }
         .main-content.shifted { margin-left:400px; }
-        .container { max-width:1600px; margin:0 auto; width:100%; height:100%; display:flex; flex-direction:column; min-height:0; }
+        .container { max-width:1600px; margin:0 auto; width:100%; display:flex; flex-direction:column; }
 
         .player-frame {
             background:var(--bg-secondary); border-radius:24px; border:1px solid var(--border);
             box-shadow:0 20px 60px var(--shadow); display:flex; flex-direction:column; overflow:hidden;
-            flex:1; min-height:0;
+            width:100%;
         }
         .player-header {
             padding:1rem 2rem; background:linear-gradient(180deg,var(--bg-tertiary),var(--bg-secondary));
@@ -133,8 +133,12 @@
         }
         .rec-timer.visible { display:block; }
 
-        .video-wrapper { position:relative; flex:1; min-height:0; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-        #videoPlayer { width:100%; height:100%; object-fit:cover; }
+        .video-wrapper {
+            position:relative; background:#000; overflow:hidden;
+            width:100%; aspect-ratio:16/9;
+            display:flex; align-items:center; justify-content:center;
+        }
+        #videoPlayer { width:100%; height:100%; object-fit:contain; background:#000; }
         #iframePlayer { width:100%; height:100%; border:none; display:none; }
 
         /* Indicateur REC en overlay sur la vidéo */
