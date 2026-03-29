@@ -284,13 +284,10 @@ function updateClock() {
     const now  = new Date();
     const h    = now.getHours().toString().padStart(2,'0');
     const m    = now.getMinutes().toString().padStart(2,'0');
-    const s    = now.getSeconds().toString().padStart(2,'0');
 
-    // Affiche HH:MM avec les secondes qui clignotent discrètement (séparateur)
     const sep  = now.getSeconds() % 2 === 0 ? ':' : '<span style="opacity:0.3">:</span>';
     document.getElementById('clockTime').innerHTML = `${h}${sep}${m}`;
 
-    // Date en français
     const jours  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
     const mois   = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
     const jour   = jours[now.getDay()];
@@ -545,7 +542,11 @@ function toggleSidebar() {
     sidebar.classList.toggle('open');
     $('sidebarToggle').classList.toggle('open');
     $('mainContent').classList.toggle('shifted');
-    if (sidebar.classList.contains('open')) { state.focusIdx=-1; search.focus(); }
+    // ── FIX : ne pas focus automatiquement sur mobile/tablette ──
+    if (sidebar.classList.contains('open')) {
+        state.focusIdx = -1;
+        if (!('ontouchstart' in window)) search.focus();
+    }
 }
 function toggleFullscreen() {
     if (!document.fullscreenElement) $('playerContainer').requestFullscreen().catch(()=>{});
