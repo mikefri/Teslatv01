@@ -84,6 +84,33 @@
         .ctrl-btn:hover { background:var(--accent); color:#000; border-color:var(--accent); }
         .ctrl-btn svg { width:20px; height:20px; fill:currentColor; }
 
+        /* ── HORLOGE ─────────────────────────────────────────── */
+        .clock-display {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:0 1.5rem;
+            border-left:1px solid var(--border);
+            border-right:1px solid var(--border);
+            min-width:120px;
+            height:48px;
+            gap:1px;
+        }
+        .clock-time {
+            font-family:'Syne', sans-serif;
+            font-size:1.25rem;
+            font-weight:700;
+            color:var(--text-primary);
+            letter-spacing:0.06em;
+            font-variant-numeric:tabular-nums;
+            line-height:1;
+        }
+        .clock-date {
+            font-size:0.68rem;
+            color:var(--text-secondary);
+            letter-spacing:0.04em;
+            text-transform:capitalize;
+            line-height:1;
+        }
+
         /* Bouton enregistrement */
         .rec-btn {
             width:40px; height:40px; border-radius:10px; border:1px solid var(--border);
@@ -141,6 +168,8 @@
             .main-content.shifted { margin-left:0; }
             .player-frame { border-radius:0; border:none; }
             .zap-zone { width:20%; }
+            .clock-display { min-width:90px; padding:0 0.75rem; }
+            .clock-time { font-size:1rem; }
         }
     </style>
 </head>
@@ -178,6 +207,13 @@
                         <p id="currentCat" style="font-size:0.8rem;color:var(--text-secondary);margin:0">Sélectionnez un contenu</p>
                     </div>
                 </div>
+
+                <!-- ── HORLOGE CENTRALE ── -->
+                <div class="clock-display">
+                    <div class="clock-time" id="clockTime">00:00</div>
+                    <div class="clock-date" id="clockDate">—</div>
+                </div>
+
                 <div class="header-controls">
                     <button class="ctrl-btn" onclick="toggleFav()" title="Favoris">
                         <svg id="favIcon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -238,6 +274,29 @@ let state = {
 };
 let hls = null, dash = null;
 
+// ── HORLOGE ───────────────────────────────────────────────────────
+function updateClock() {
+    const now  = new Date();
+    const h    = now.getHours().toString().padStart(2,'0');
+    const m    = now.getMinutes().toString().padStart(2,'0');
+    const s    = now.getSeconds().toString().padStart(2,'0');
+
+    // Affiche HH:MM avec les secondes qui clignotent discrètement (séparateur)
+    const sep  = now.getSeconds() % 2 === 0 ? ':' : '<span style="opacity:0.3">:</span>';
+    document.getElementById('clockTime').innerHTML = `${h}${sep}${m}`;
+
+    // Date en français
+    const jours  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const mois   = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+    const jour   = jours[now.getDay()];
+    const d      = now.getDate();
+    const mo     = mois[now.getMonth()];
+    const y      = now.getFullYear();
+    document.getElementById('clockDate').textContent = `${jour} ${d} ${mo} ${y}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
 // ── ENREGISTREMENT ────────────────────────────────────────────────
 let mediaRecorder = null;
 let recChunks = [];
@@ -286,9 +345,8 @@ function startRecord() {
 
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
     mediaRecorder.onstop = saveRecord;
-    mediaRecorder.start(1000); // chunk toutes les secondes
+    mediaRecorder.start(1000);
 
-    // UI
     $('recBtn').classList.add('recording');
     $('recTimer').classList.add('visible');
     $('recIndicator').classList.add('visible');
@@ -336,7 +394,7 @@ function formatRecTime(s) {
     return `${m}:${sec}`;
 }
 
-// ── PROXY : .mpd ET .m3u8 netplus.ch ─────────────────────────────
+// ── PROXY ─────────────────────────────────────────────────────────
 function urlFor(url) {
     if (url.endsWith('.mpd') || (url.includes('.m3u8') && url.includes('netplus.ch')))
         return '/api/proxy?url=' + encodeURIComponent(url);
@@ -439,10 +497,8 @@ function play(id) {
     logo.src = item.logo || ''; logo.style.display = item.logo ? 'block' : 'none';
     updateFavIcon();
 
-    // Arrêter enregistrement si chaîne change
     if (mediaRecorder && mediaRecorder.state === 'recording') stopRecord();
 
-    // Reset
     if (hls)  { hls.destroy();  hls  = null; }
     if (dash) { dash.reset();   dash = null; }
     video.pause(); video.removeAttribute('src');
