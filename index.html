@@ -89,6 +89,8 @@
         }
         .mode-btn.active { background:var(--accent); color:#000; }
         .mode-btn.multi-btn.active { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; }
+        /* TV Bis button accent — orange tint to differentiate from main TV */
+        .mode-btn.tvbis-btn.active { background:linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
 
         .search-container { padding:0.9rem 1rem 0.6rem; flex-shrink:0; }
         .search-box {
@@ -324,7 +326,6 @@
             display:none;
         }
 
-        /* Slot loader */
         .mv-slot-loader {
             position:absolute; inset:0;
             background:rgba(0,0,0,0.8);
@@ -340,7 +341,6 @@
             animation:spin 0.8s linear infinite;
         }
 
-        /* Slot empty state */
         .mv-slot-empty {
             position:absolute; inset:0;
             display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -355,7 +355,6 @@
             font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; color:#c4b5fd;
         }
 
-        /* Slot label bar */
         .mv-slot-label {
             position:absolute; bottom:0; left:0; right:0;
             padding:4px 10px;
@@ -379,10 +378,8 @@
         .mv-slot-action svg { width:13px; height:13px; fill:currentColor; }
         .mv-slot-action.sound-active svg { fill:var(--accent); }
 
-        /* Sound active highlight */
         .mv-sound-icon { width:14px; height:14px; fill:currentColor; }
 
-        /* Selected ring pulse */
         @keyframes ringPulse {
             0%  { box-shadow: 0 0 0 0   rgba(124,58,237,0.8); }
             70% { box-shadow: 0 0 0 6px rgba(124,58,237,0); }
@@ -449,7 +446,6 @@
             .mobile-header { display:flex; }
             .video-wrapper { flex:none; width:100%; aspect-ratio:16/9; }
             .player-frame { overflow-y:auto; -webkit-overflow-scrolling:touch; }
-            /* Multiview mobile: stacked 2x2 but smaller */
             .mv-grid { gap:2px; }
             .mv-slot-label { font-size:0.65rem; padding:3px 7px; }
         }
@@ -484,6 +480,7 @@
         <div class="sidebar-title" onclick="unlockSecret()">TeslaTV</div>
         <div class="mode-switcher">
             <button class="mode-btn active" onclick="switchMode('tv')">TV</button>
+            <button class="mode-btn tvbis-btn" onclick="switchMode('tvbis')">TV Bis</button>
             <button class="mode-btn" onclick="switchMode('series')">Séries</button>
             <button class="mode-btn multi-btn" onclick="switchMode('multi')">
                 <svg style="width:13px;height:13px;fill:currentColor;vertical-align:-1px;margin-right:3px" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>Multi
@@ -610,17 +607,23 @@
 </div>
 
 <script>
+// ── SOURCES ──────────────────────────────────────────────────────────────────
 const GISTS = {
     tv:     'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/channels.json',
+    tvbis:  'https://gist.githubusercontent.com/mikefri/0802a5afa97ac99a27cec4e6c1737a95/raw/__channel2.json__',
     series: 'https://gist.githubusercontent.com/mikefri/fc75ba4ad4eb3d8da1a3d1f6dc9c83f2/raw/series.json',
     xxx:    'https://gist.githubusercontent.com/mikefri/c4ea8003ac647eeafd14c35db59431ea/raw/xx.json'
 };
+
+// Modes who use a standalone player (not multi)
+const PLAYER_MODES = ['tv', 'tvbis', 'series', 'xxx'];
 
 let state = {
     mode: localStorage.getItem('mode') || 'tv',
     list: [], current: null,
     favs: JSON.parse(localStorage.getItem('favs') || '[]'),
-    focusIdx: -1
+    focusIdx: -1,
+    _lastLoadedMode: null
 };
 let hls = null, dash = null;
 
@@ -633,7 +636,7 @@ let mvSlots = Array.from({length: MV_COUNT}, (_, i) => ({
     dash: null,
     soundActive: false
 }));
-let mvPickingSlot = null;   // index of slot being assigned, or null
+let mvPickingSlot = null;
 
 const $ = id => document.getElementById(id);
 const isMobile = () => 'ontouchstart' in window;
@@ -770,12 +773,14 @@ function filtered() {
 
 /* ── MODE / RENDER ── */
 async function switchMode(mode, resetPicking=true) {
-    // Cancel mv picking
     if(resetPicking) { mvPickingSlot = null; updateMvHint(); }
 
-    state.mode=mode; state.focusIdx=-1;
-    if(mode !== 'multi') localStorage.setItem('mode', mode);
+    state.mode = mode;
+    state.focusIdx = -1;
+    // Persist only player modes
+    if(PLAYER_MODES.includes(mode)) localStorage.setItem('mode', mode);
 
+    // Update active button
     document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
     const activeBtn = document.querySelector(`.mode-btn[onclick="switchMode('${mode}')"]`);
     if(activeBtn) activeBtn.classList.add('active');
@@ -788,8 +793,8 @@ async function switchMode(mode, resetPicking=true) {
     $('mobileHeader').style.display  = isMulti ? 'none' : '';
 
     if(isMulti) {
-        // Load TV list if needed for multi mode
-        if(!state.list.length || state._lastLoadedMode !== 'tv') {
+        // Multi needs the TV list as its channel source
+        if(!state.list.length || !['tv','tvbis'].includes(state._lastLoadedMode)) {
             grid.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-secondary)">Chargement...</div>';
             try {
                 const r = await fetch(GISTS['tv']+'?t='+Date.now());
@@ -798,7 +803,6 @@ async function switchMode(mode, resetPicking=true) {
                 render();
             } catch { grid.innerHTML='<div style="color:#f44;text-align:center;padding:20px">Erreur chargement</div>'; }
         }
-        // Prompt picking for first empty slot
         const emptySlot = mvSlots.findIndex(s=>!s.item);
         if(emptySlot >= 0) startMvPick(emptySlot);
         else render();
@@ -893,8 +897,8 @@ function play(id) {
 ═══════════════════════════════════════ */
 
 function buildMvGrid() {
-    const grid = $('mvGrid');
-    grid.innerHTML = '';
+    const g = $('mvGrid');
+    g.innerHTML = '';
     for(let i=0; i<MV_COUNT; i++) {
         const slot = document.createElement('div');
         slot.className = 'mv-slot';
@@ -922,21 +926,17 @@ function buildMvGrid() {
                 </div>
             </div>`;
         slot.addEventListener('click', (e) => {
-            // Only trigger if click on the empty area
             if(e.target.closest('.mv-slot-action') || e.target.closest('.mv-slot-label')) return;
             if(!mvSlots[i].item) mvPickSlot(i);
         });
-        grid.appendChild(slot);
+        g.appendChild(slot);
     }
 }
 
-// Start picking mode: user must select a channel from sidebar
 function startMvPick(slotIndex) {
     mvPickingSlot = slotIndex;
     updateMvHint();
-    // Show sidebar if hidden
     if(!sidebar.classList.contains('open')) toggleSidebar();
-    // Highlight the target slot
     document.querySelectorAll('.mv-slot').forEach((s,i)=>s.classList.toggle('selected', i===slotIndex));
     render();
 }
@@ -956,23 +956,17 @@ function updateMvHint() {
     }
 }
 
-// Called when user clicks a channel in multi mode
 function mvAssign(channelId) {
     if(mvPickingSlot === null) {
-        // Find first empty slot
         const empty = mvSlots.findIndex(s=>!s.item);
         if(empty >= 0) mvPickingSlot = empty;
-        else mvPickingSlot = 0; // replace slot 0
+        else mvPickingSlot = 0;
     }
-
     const item = state.list.find(i=>i.id===channelId);
     if(!item) return;
-
     mvLoadSlot(mvPickingSlot, item);
     mvPickingSlot = null;
     updateMvHint();
-
-    // Auto-pick next empty slot
     const nextEmpty = mvSlots.findIndex(s=>!s.item);
     if(nextEmpty >= 0) {
         setTimeout(()=>startMvPick(nextEmpty), 300);
@@ -984,13 +978,11 @@ function mvAssign(channelId) {
 
 function mvLoadSlot(slotIndex, item) {
     const slot = mvSlots[slotIndex];
-    // Clean up previous
     if(slot.hls) { slot.hls.destroy(); slot.hls=null; }
     if(slot.dash) { slot.dash.reset(); slot.dash=null; }
-
     slot.item = item;
 
-    const videoEl = $(`mvVideo_${slotIndex}`);
+    const videoEl  = $(`mvVideo_${slotIndex}`);
     const loaderEl = $(`mvLoader_${slotIndex}`);
     const emptyEl  = $(`mvEmpty_${slotIndex}`);
     const labelEl  = $(`mvLabel_${slotIndex}`);
@@ -1001,8 +993,6 @@ function mvLoadSlot(slotIndex, item) {
     videoEl.style.display  = 'block';
     labelName.textContent  = item.name;
     loaderEl.classList.add('active');
-
-    // Apply mute state
     videoEl.muted = !slot.soundActive;
 
     const url = item.url;
@@ -1011,7 +1001,6 @@ function mvLoadSlot(slotIndex, item) {
     if(!isStream) {
         videoEl.style.display='none';
         loaderEl.classList.remove('active');
-        // Show iframe instead
         let ifrEl = $(`mvIframe_${slotIndex}`);
         if(!ifrEl) {
             ifrEl = document.createElement('iframe');
@@ -1060,21 +1049,17 @@ function mvClearSlot(slotIndex) {
     const videoEl = $(`mvVideo_${slotIndex}`);
     videoEl.pause(); videoEl.removeAttribute('src');
     videoEl.style.display='none';
-
     const ifrEl = $(`mvIframe_${slotIndex}`);
     if(ifrEl) { ifrEl.src=''; ifrEl.style.display='none'; }
-
     $(`mvEmpty_${slotIndex}`).style.display='flex';
     $(`mvLabel_${slotIndex}`).style.display='none';
     $(`mvLoader_${slotIndex}`).classList.remove('active');
-
     slot.item=null; slot.soundActive=false;
     updateMvSoundUI();
     render();
 }
 
 function mvToggleSound(slotIndex) {
-    // Mute all others, unmute this one
     const wasActive = mvSlots[slotIndex].soundActive;
     mvSlots.forEach((s,i)=>{ s.soundActive = (!wasActive && i===slotIndex); });
     updateMvSoundUI();
